@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  .form-group {
+    display: inline;
+    flex-direction: row;
+    gap: 8px;
+}
+</style>
+</head>
+<body data-theme="dark">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">
+          <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo" class="logo-img">
+          <span class="logo-text">TalkToText Pro</span>
+        </div>
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to your account to continue</p>
+      </div>
+      
+      <form class="auth-form" method="POST">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" name="username" placeholder="Enter your username" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter your password" required>
+        </div>
+        
+        <button type="submit">Sign In</button>
+      </form>
+      
+      <div class="auth-footer">
+        <p>Don't have an account? <a href="{{ url_for('register') }}" class="auth-link">Sign up now</a></p>
+      </div>
+
+     
+    </div>
+  </div>
+
+  <script>
+    // Theme Selection Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeButton = document.querySelector('.theme-button');
+      const themeOptions = document.querySelector('.theme-options');
+      const themeOptionsItems = document.querySelectorAll('.theme-option');
+      
+      // Toggle theme options dropdown
+      themeButton.addEventListener('click', function() {
+        themeOptions.classList.toggle('active');
+      });
+      
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.theme-selector')) {
+          themeOptions.classList.remove('active');
+        }
+      });
+      
+      // Change theme when an option is selected
+      themeOptionsItems.forEach(option => {
+        option.addEventListener('click', function() {
+          const theme = this.getAttribute('data-theme');
+          document.body.setAttribute('data-theme', theme);
+          themeOptions.classList.remove('active');
+          
+          // Save theme preference to localStorage
+          localStorage.setItem('selectedTheme', theme);
+        });
+      });
+      
+      // Load saved theme from localStorage
+      const savedTheme = localStorage.getItem('selectedTheme');
+      if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+      }
+    });
+  </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <a href="{{ url_for('register') }}"><i class="fa-solid fa-user-plus"></i> Register</a>
+    </div>
+    <div class="chat-container" style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100%;">
+      <div class="logo-wrapper">
+        <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+        <span class="logo-text">TalkToText Pro</span>
+      </div>
+      <form method="POST" style="width: 100%; max-width: 400px; padding: 20px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; gap: 15px;">
+        <label for="username" style="color: var(--text-color); font-size: 14px;">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required>
+        <label for="password" style="color: var(--text-color); font-size: 14px;">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter password" required>
+        <button type="submit">Login</button>
+        <p style="text-align: center; color: var(--text-color); font-size: 14px;">
+          Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary-color);">Register</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <button id="right-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+    <div class="audio-section">
+      <h4><i class="fa-solid fa-newspaper"></i> Transcript</h4>
+      <div id="transcript-box"></div>
+      <h4><i class="fa-solid fa-file-lines"></i> Summary</h4>
+      <div id="summary-box"></div>
+      <a id="download-link" href="/download_notes" style="display:none;">Download Notes</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html> -->

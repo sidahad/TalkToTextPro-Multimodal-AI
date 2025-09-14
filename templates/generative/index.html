@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Talk To Text Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/lib/swiperSlider/swiper-bundle.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/lib/swiperSlider/swiper-gl.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/framework/bootstrap/css/bootstrap.min.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/theme/css/color.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/theme/css/theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/theme/css/responsive.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing_assets/theme/css/animation.css') }}" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+<style>
+@media (max-width: 1440px) {
+    nav {
+        padding: 10px 30px;
+        gap: 35px;
+    }
+}
+
+.featureIcon {
+    padding: 20px;
+}
+.view .inner {
+    width: 93%;
+   height: auto;
+}
+.viewImg img {
+    width: 100%;
+    height: auto;}
+.viewImg{
+  height: 500px
+}
+</style>
+</head>
+
+<body class="position-relative">
+  <div class="loader">
+    <h1 class="loaderText" data-original="talktotext">loading</h1>
+  </div>
+
+  <div id="scroll-content">
+    <div class="overflow-hidden">
+      <header id="top">
+        <nav class="d-flex align-items-center flex-wrap">
+          <div class="logo">
+            <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo" style="width: 90px;" />
+            TalkToText
+          </div>
+          <ul class="navMenu aiana-d-md-none aiana-menu list-unstyled d-flex align-items-center flex-grow-1 justify-content-center">
+            <li class="anchorHover">
+              <a href="#top">Home</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+            <li class="anchorHover">
+              <a href="#About">About</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+            <li class="anchorHover">
+              <a href="#Features">Features</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+            <li class="anchorHover">
+              <a href="{% if session.get('user') %}{{ url_for('chat') }}{% else %}{{ url_for('login') }}{% endif %}">Chatbot</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+            <li class="anchorHover">
+              <a href="{{ url_for('login') }}">Login</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+            <li class="anchorHover">
+              <a href="{{ url_for('register') }}">Register</a>
+              <span class="sup"></span>
+              <span class="dup"></span>
+            </li>
+          </ul>
+          <ul class="aiana-social sm-sm-none list-unstyled d-flex">
+            <li><a href="#"><i class="fa-solid fa-microphone"></i></a></li>
+            <li><a href="#"><i class="fa-solid fa-images"></i></a></li>
+            <li><a href="#"><i class="fa-solid fa-language"></i></a></li>
+          </ul>
+          <div class="mobileNav">
+            <div class="menuIcon">
+              <span></span>
+              <span></span>
+            </div>
+            <div class="mobNavInner">
+              <ul class="navMenu aiana-menu list-unstyled d-flex flex-column align-items-center flex-grow-1 justify-content-center">
+                <li class="anchorHover">
+                  <a href="#top">Home</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+                <li class="anchorHover">
+                  <a href="#About">About</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+                <li class="anchorHover">
+                  <a href="#Features">Features</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+                <li class="anchorHover">
+                  <a href="{% if session.get('user') %}{{ url_for('chat') }}{% else %}{{ url_for('login') }}{% endif %}">Chatbot</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+                <li class="anchorHover">
+                  <a href="{{ url_for('login') }}">Login</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+                <li class="anchorHover">
+                  <a href="{{ url_for('register') }}">Register</a>
+                  <span class="sup"></span>
+                  <span class="dup"></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <section class="aiana-hero">
+          <div class="container position-relative z-2">
+            <div class="row align-items-center">
+              <div class="col-md-6 position-relative tab-none">
+                <div class="heroSide position-relative">
+                  <div class="sideImg">
+                    <div class="slide">
+                      <img src="{{ url_for('static', filename='landing_assets/images/12-removebg-preview.png') }}" style="height: 450px;" alt="Slide" />
+                    </div>
+                    <div class="slide">
+                      <img src="{{ url_for('static', filename='landing_assets/images/11.jpg') }}" alt="Slide" />
+                    </div>
+                    <div class="slide">
+                      <img src="{{ url_for('static', filename='landing_assets/images/10.jpg') }}" alt="Slide" />
+                    </div>
+                  </div>
+                  <div class="obj">
+                    <img src="{{ url_for('static', filename='landing_assets/images/hero/obj.png') }}" alt="Object" />
+                    <img src="{{ url_for('static', filename='landing_assets/images/hero/obj.png') }}" alt="Object" />
+                  </div>
+                </div>
+                <div class="aiana-search position-relative z-3">
+                  <a href="{{ url_for('login') }}" class="aiana-button" style="padding: 15px;">Get Started with Talk to Text</a>
+                </div>
+              </div>
+              <div class="col-md-6 tab-100 position-relative z-3" style="margin-right: -50px;">
+                <h1 class="aiana-h1">TalkText</h1>
+                <div class="paddingCustom ms-md-5">
+                  <p class="aiana-desc">
+                    Talk to Text helps you convert speech into accurate text instantly.
+                    It saves time, reduces effort, and improves productivity for students,
+                    professionals, and businesses alike.
+                  </p>
+                  <ul class="row aiana-list list-unstyled">
+                    <li class="col-6">
+                      <img src="{{ url_for('static', filename='landing_assets/images/hero/list/1.png') }}" alt="List Icon" />Real-time Conversion
+                    </li>
+                    <li class="col-6">
+                      <img src="{{ url_for('static', filename='landing_assets/images/hero/list/2.png') }}" alt="List Icon" />User-friendly Interface
+                    </li>
+                    <li class="col-6">
+                      <img src="{{ url_for('static', filename='landing_assets/images/hero/list/3.png') }}" alt="List Icon" />Multi-language Support
+                    </li>
+                    <li class="col-6">
+                      <img src="{{ url_for('static', filename='landing_assets/images/hero/list/4.png') }}" alt="List Icon" />Affordable & Reliable
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div>
+              <img src="{{ url_for('static', filename='landing_assets/images/hero/ai-eye.png') }}" alt="eye" class="hero-eye" />
+            </div>
+          </section>
+        </header>
+        <section class="aiana-features position-relative">
+          <div class="container position-relative z-3">
+            <div class="aiana-Feature-1 mb-5 pb-md-5">
+              <h1 class="aiana-heading animateScrollText mx-auto">Generative Ai</h1>
+              <h2 class="aiana-h2 animateScrollText text-center">Talk To Text </h2>
+              <div class="row">
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">AI Speech-to-Text</h2>
+                    <p class="aiana-desc">
+                      Automatically transcribes meeting audio into accurate, readable text using advanced AI models.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">Structured Meeting Note</h2>
+                    <p class="aiana-desc">
+                      Generates summaries, action items, decisions, and key discussion points automatically.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">Fast Processing</h2>
+                    <p class="aiana-desc">
+                      Generates meeting notes from a 30-minute session in less than 2 minutes & you can upload pdf in any language.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">Language Translation</h2>
+                    <p class="aiana-desc">
+                      Supports multilingual meetings by translating transcripts into English instantly.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">Text Optimization</h2>
+                    <p class="aiana-desc">
+                      Cleans transcripts by removing filler words, repetitions, and unnecessary pauses for clarity.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-4 mt-5 tab-50 sm-sm-100">
+                  <div class="featureSingle" style="border: 2px solid white;">
+                    <i class="featureIcon fa-solid fa-robot"></i>
+                    <h2 class="aiana-h3">Responsive Design</h2>
+                    <p class="aiana-desc">
+                      Works seamlessly on desktop, mobile, and tablets with a responsive design.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="aianaFeature-2 mt-5 pt-md-5">
+              <div class="circleImg">
+                <img src="{{ url_for('static', filename='landing_assets/images/3.jpg') }}" alt="Circle Img" />
+              </div>
+              <h1 class="gradient-h1 pt-5 text-end">
+                THE FASTEST AI FOR MEETING NOTES.
+              </h1>
+              <h1 class="gradient-h1 text-start">
+                BUILT FOR CLARITY, SPEED & PRODUCTIVITY.
+              </h1>
+            </div>
+          </div>
+          <div class="aiana-marquee position-relative z-3">
+            <div class="marquee">
+              <div class="slideInner">
+                <h2 class="aiana-h2 slide">TalkToText Pro</h2>
+                <h2 class="aiana-h2 slide">AI-Powered Meeting Notes</h2>
+                <h2 class="aiana-h2 slide">Real-time Speech-to-Text</h2>
+                <h2 class="aiana-h2 slide">Accurate & Reliable Transcriptions</h2>
+                <h2 class="aiana-h2 slide">Smart Summaries & Action Points</h2>
+                <h2 class="aiana-h2 slide">Multi-Language Support</h2>
+                <h2 class="aiana-h2 slide">Fast, Secure & Cloud-Based</h2>
+                <h2 class="aiana-h2 slide">Boost Productivity with AI</h2>
+              </div>
+            </div>
+          </div>
+          <div class="featureBG">
+            <img src="{{ url_for('static', filename='landing_assets/images/backgrounds/featureBG.png') }}" alt="BG" />
+          </div>
+        </section>
+        <section id="projects" class="aiana-projects">
+          <h1 class="aiana-heading animateScrollText mx-auto">
+            Generative ai
+          </h1>
+          <h2 class="aiana-h2 animateScrollText text-center">
+            Our Gallery
+          </h2>
+          <div class="container mt-5 position-relative z-3">
+            <div class="tab-content" id="projects-content">
+              <div class="tab-pane fade show active" id="tab-1-content" role="tabpanel" aria-labelledby="tab-1" tabindex="0">
+                <div class="d-flex w-100 w-md-95">
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p1.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>speech-to-text / transcription</p>
+                        <h4>Real-time Transcription Engine</h4>
+                      </div>
+                    </div>
+                    <div class="project-single">
+                      <div class="bar"></div>
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p3.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>ai summarization / automation</p>
+                        <h4>Smart Meeting Notes Generator</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <div class="bar"></div>
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p2.png') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>translation / multilingual</p>
+                        <h4>AI-Powered Language Support</h4>
+                      </div>
+                    </div>
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p4.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>privacy / data security</p>
+                        <h4>Secure Storage & Export</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="tab-2-content" role="tabpanel" aria-labelledby="tab-2" tabindex="0">
+                <div class="d-flex w-100 w-md-95">
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p3.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>multi-speaker recognition</p>
+                        <h4>Speaker Identification System</h4>
+                      </div>
+                      <div class="bar"></div>
+                    </div>
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p2.png') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>translation / multilingual</p>
+                        <h4>AI-Powered Language Support</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <div class="bar"></div>
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p2.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>ui / experience</p>
+                        <h4>User-Friendly Dashboard</h4>
+                      </div>
+                    </div>
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p3.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>integration / productivity</p>
+                        <h4>Google Meet & Teams Integration</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="tab-3-content" role="tabpanel" aria-labelledby="tab-3" tabindex="0">
+                <div class="d-flex w-100 w-md-95">
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p4.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>download / export</p>
+                        <h4>PDF & Word Export Options</h4>
+                      </div>
+                    </div>
+                    <div class="project-single">
+                      <div class="bar"></div>
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p3.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>progress tracker / status</p>
+                        <h4>Real-Time Processing Updates</h4>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="project-single">
+                      <div class="bar"></div>
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p2.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>analytics / insights</p>
+                        <h4>Meeting Sentiment Analysis</h4>
+                      </div>
+                    </div>
+                    <div class="project-single">
+                      <img src="{{ url_for('static', filename='landing_assets/images/projects/p1.jpg') }}" alt="projects" />
+                      <div class="projectInfo">
+                        <p>login / personalization</p>
+                        <h4>Secure User Accounts</h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="projects-tab" role="tablist">
+              <button class="active" id="tab-1" data-bs-toggle="tab" data-bs-target="#tab-1-content" type="button" role="tab" aria-controls="tab-1-content" aria-selected="true">
+                Talk <span>*</span>
+              </button>
+              <button id="tab-2" data-bs-toggle="tab" data-bs-target="#tab-2-content" type="button" role="tab" aria-controls="tab-2-content" aria-selected="false">
+                To <span>*</span>
+              </button>
+              <button id="tab-3" data-bs-toggle="tab" data-bs-target="#tab-3-content" type="button" role="tab" aria-controls="tab-3-content" aria-selected="false">
+                Text
+              </button>
+            </div>
+          </div>
+        </section>
+        <section id="gallery" class="aiana-gallery">
+          <div class="container position-relative z-3">
+            <h1 class="text-center animateScrollText aiana-h1 small">
+              AI-Powered Transcription <br /> For Smarter Meetings
+            </h1>
+            <div class="row my-5">
+              <div class="col-3">
+                <div class="gallery set1">
+                  <img src="{{ url_for('static', filename='landing_assets/images/gallery/2.jpg') }}" alt="Photo" />
+                  <img src="{{ url_for('static', filename='landing_assets/images/gallery/1.png') }}" alt="Photo" />
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="gallery set2">
+                  <img src="{{ url_for('static', filename='landing_assets/images/gallery/3.jpg') }}" alt="Photo" />
+                </div>
+              </div>
+              <div class="col-3">
+                <div class="gallery set3">
+                  <img src="{{ url_for('static', filename='landing_assets/images/gallery/4.png') }}" alt="Photo" />
+                  <img src="{{ url_for('static', filename='landing_assets/images/gallery/7.jpg') }}" alt="Photo" />
+                </div>
+              </div>
+            </div>
+            <ul class="aiana-list-2 d-flex align-items-center justify-content-center gap-5 list-unstyled">
+              <li><i class="fa-solid fa-circle-check"></i> Real-time Transcription</li>
+              <li><i class="fa-solid fa-circle-check"></i> Automatic Summaries & Action Points</li>
+              <li><i class="fa-solid fa-circle-check"></i> Secure Cloud Storage</li>
+            </ul>
+            <a href="{{ url_for('login') }}" class="aiana-button d-flex justify-content-center align-items-center mx-auto mt-0">
+              TalkToText Pro
+            </a>
+          </div>
+          <img class="section-bg" src="{{ url_for('static', filename='landing_assets/images/backgrounds/aiana-gallery.jpg') }}" alt="BG" />
+        </section>
+        <section id="video" class="aiana-video video-block">
+          <div class="container position-relative z-3">
+            <div class="playBtn startplay">
+              <i class="fa-solid fa-play"></i>
+              <div class="rotateAnimation"></div>
+            </div>
+          </div>
+          <iframe src="https://www.youtube-nocookie.com/embed/O5O3yK8DJCc?si=JgM3-6Rmon62WHzq&amp;controls=0"
+            title="Sample Video" frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          <i class="close fa-solid fa-circle-xmark"></i>
+          <img src="{{ url_for('static', filename='landing_assets/images/video/bg.jpg') }}" alt="BG" class="section-bg" />
+        </section>
+        <section class="aiana-faqs">
+          <div class="container">
+            <h1 class="aiana-heading animateScrollText mx-auto">
+              TalkToText Pro FAQs
+            </h1>
+            <h2 class="aiana-h2 animateScrollText text-center">
+              Everything You Need to Know
+            </h2>
+            <div class="mt-5 accordion accordion-flush" id="aianaFaq">
+              <div class="accordion-item">
+                <img class="active" src="{{ url_for('static', filename='landing_assets/images/faqs/faq1.jpg') }}" alt="Faq" />
+                <div class="flex-grow-1">
+                  <h2 class="accordion-header">
+                    <button type="button" data-bs-toggle="collapse" data-bs-target="#faq1" aria-expanded="false" aria-controls="#faq1">
+                      How does TalkToText Pro work?
+                    </button>
+                  </h2>
+                  <div id="faq1" data-bs-parent="#aianaFaq" class="collapse show">
+                    <div class="accordion-body">
+                      TalkToText Pro converts your speech into accurate text using AI-powered transcription.
+                      It then cleans the transcript, translates if needed, and generates structured meeting notes
+                      including summaries, action items, and key points.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <img src="{{ url_for('static', filename='landing_assets/images/faqs/faq1.jpg') }}" alt="Faq" />
+                <div class="flex-grow-1">
+                  <h2 class="accordion-header">
+                    <button type="button" class="collapsed" data-bs-toggle="collapse" data-bs-target="#faq2" aria-expanded="false" aria-controls="#faq2">
+                      Does it support multiple languages?
+                    </button>
+                  </h2>
+                  <div id="faq2" data-bs-parent="#aianaFaq" class="collapse">
+                    <div class="accordion-body">
+                      Yes. TalkToText Pro supports transcription in multiple languages and
+                      automatically translates content into English for easy understanding and sharing.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <img src="{{ url_for('static', filename='landing_assets/images/faqs/faq1.jpg') }}" alt="Faq" />
+                <div class="flex-grow-1">
+                  <h2 class="accordion-header">
+                    <button type="button" class="collapsed" data-bs-toggle="collapse" data-bs-target="#faq3" aria-expanded="false" aria-controls="#faq3">
+                      How secure is my meeting data?
+                    </button>
+                  </h2>
+                  <div id="faq3" data-bs-parent="#aianaFaq" class="collapse">
+                    <div class="accordion-body">
+                      Your data is protected with end-to-end encryption and stored securely in the cloud.
+                      Only authorized users can access meeting transcripts and notes.
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <img src="{{ url_for('static', filename='landing_assets/images/faqs/faq1.jpg') }}" alt="Faq" />
+                <div class="flex-grow-1">
+                  <h2 class="accordion-header">
+                    <button type="button" class="collapsed" data-bs-toggle="collapse" data-bs-target="#faq4" aria-expanded="false" aria-controls="#faq4">
+                      Can I export my meeting notes?
+                    </button>
+                  </h2>
+                  <div id="faq4" data-bs-parent="#aianaFaq" class="collapse">
+                    <div class="accordion-body">
+                      Absolutely! You can export your notes in multiple formats including PDF and Word.
+                      Notes can also be shared directly via email or integrated into productivity tools.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="aiana-services">
+          <div class="container position-relative z-3">
+            <div class="servicedetails">
+              <div class="row align-items-center">
+                <div class="col-md-6">
+                  <h1 class="aiana-heading animateScrollText">
+                    TalkToText Pro Services
+                  </h1>
+                  <h2 class="aiana-h2 animateScrollText">
+                    Smarter Meetings with AI-Powered Notes
+                  </h2>
+                  <p class="aiana-desc">
+                    TalkToText Pro transforms your meetings by converting speech into accurate,
+                    structured notes. From real-time transcription to multilingual support,
+                    our AI ensures that no key detail is ever missed — helping teams stay productive,
+                    clear, and connected.
+                  </p>
+                  <ul class="row aiana-list-2 list-unstyled">
+                    <li class="col-md-6">
+                      <i class="fa-solid fa-circle-check"></i>Real-time Transcription
+                    </li>
+                    <li class="col-md-6">
+                      <i class="fa-solid fa-circle-check"></i>Automatic Summaries
+                    </li>
+                    <li class="col-md-6">
+                      <i class="fa-solid fa-circle-check"></i>Multi-language Support
+                    </li>
+                  </ul>
+                  <a href="{{ url_for('login') }}" class="aiana-button m-0" style="padding: 15px;">
+                    Get Started with TalkToText Pro
+                  </a>
+                </div>
+                <div class="col-md-6 position-relative sm-none">
+                  <img class="serviceSide" src="{{ url_for('static', filename='landing_assets/images/services/detailsBG.jpg') }}" alt="BG" />
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-4 mt-5">
+                <div class="serviceSingle">
+                  <div class="serviceIcon">
+                    <img src="{{ url_for('static', filename='landing_assets/images/serviceIcon/1.png') }}" alt="Icon" />
+                  </div>
+                  <h4 class="aiana-h4 my-3">1. Real-time Transcription</h4>
+                  <p class="aiana-desc mt-0">
+                    Convert speech into accurate text instantly during live or recorded meetings,
+                    ensuring no detail is missed.
+                  </p>
+                </div>
+              </div>
+              <div class="col-md-4 mt-5">
+                <div class="serviceSingle">
+                  <div class="serviceIcon">
+                    <img src="{{ url_for('static', filename='landing_assets/images/serviceIcon/2.png') }}" alt="Icon" />
+                  </div>
+                  <h4 class="aiana-h4 my-3">2. Smart Meeting Summaries</h4>
+                  <p class="aiana-desc mt-0">
+                    Automatically generate clear meeting notes with summaries,
+                    action items, and key discussion points.
+                  </p>
+                </div>
+              </div>
+              <div class="col-md-4 mt-5">
+                <div class="serviceSingle">
+                  <div class="serviceIcon">
+                    <img src="{{ url_for('static', filename='landing_assets/images/serviceIcon/3.png') }}" alt="Icon" />
+                  </div>
+                  <h4 class="aiana-h4 my-3">3. Secure Cloud Storage</h4>
+                  <p class="aiana-desc mt-0">
+                    Store transcripts and notes safely with end-to-end encryption
+                    and access them anytime, anywhere.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="section-bg">
+            <img src="{{ url_for('static', filename='landing_assets/images/backgrounds/aiana-services.jpg') }}" alt="BG" />
+          </div>
+        </section>
+        <section id="blog" class="aiana-blog">
+          <div class="container">
+            <h1 class="aiana-heading-2 mx-auto text-center">
+              TalkToText Pro Insights
+            </h1>
+            <h2 class="aiana-h2 animateScrollText text-center">
+              Smarter Meetings with AI-Powered <br /> Transcription & Notes
+            </h2>
+            <div class="row">
+              <div class="col-md-4 col-sm-6 pt-5">
+                <div class="blogSingle">
+                  <span class="tag">Article</span>
+                  <h4 class="aiana-h4 fw-medium text-center">
+                    How AI Transcription Improves Productivity in Teams
+                  </h4>
+                  <i class="featureIcon m-0 fa-solid fa-robot"></i>
+                </div>
+              </div>
+              <div class="col-md-4 col-sm-6 pt-5">
+                <div class="blogSingle">
+                  <span class="tag">Article</span>
+                  <h4 class="aiana-h4 fw-medium text-center">
+                    Meeting Notes Made Easy with TalkToText Pro
+                  </h4>
+                  <i class="featureIcon m-0 fa-solid fa-robot"></i>
+                </div>
+              </div>
+              <div class="col-md-4 col-sm-6 pt-5">
+                <div class="blogSingle">
+                  <span class="tag">Article</span>
+                  <h4 class="aiana-h4 fw-medium text-center">
+                    From Chaos to Clarity: AI-Powered Meeting Summaries
+                  </h4>
+                  <i class="featureIcon m-0 fa-solid fa-robot"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="aiana-view position-relative z-3">
+          <div class="container">
+            <div class="view position-relative">
+              <div class="inner position-relative z-3">
+                <h2 class="aiana-h2 animateScrollText small text-center">
+                  Save hours every week with AI-powered meeting transcriptions & summaries
+                </h2>
+                <a href="{{ url_for('login') }}" class="aiana-button d-flex justify-content-center align-items-center mx-auto">
+                  TalkToText Pro
+                </a>
+                <div class="mt-5 viewImg">
+                  <img src="{{ url_for('static', filename='landing_assets/images/view/ss.jpg') }}" alt="SS" />
+                </div>
+              </div>
+              <img src="{{ url_for('static', filename='landing_assets/images/backgrounds/aiana-view.png') }}" alt="BG" class="section-bg" />
+            </div>
+          </div>
+        </section>
+        <footer class="position-relative">
+          <div class="container position-relative z-3">
+            <div class="row align-items-center">
+              <div class="col-md-4 sm-sm-100 tab-50">
+                <div class="block">
+                  <div class="logo">
+                    <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo" style="width: 90px;" />
+                    TalkToText Pro
+                  </div>
+                  <p class="aiana-desc">
+                    TalkToText Pro is your AI-powered meeting assistant.
+                    From real-time transcription to smart summaries, we help teams
+                    save time, stay productive, and never miss a detail.
+                  </p>
+                  <ul class="aiana-social list-unstyled d-flex mt-5">
+                    <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-linkedin-in"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-facebook"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                  </ul>
+                </div>
+              </div>
+              <div class="col-md-4 sm-100 tab-50">
+                <div class="row">
+                  <div class="col-6 sm-sm-100">
+                    <div class="block">
+                      <h4 class="aiana-h4 footer-h4">Features</h4>
+                      <ul class="footer-list list-unstyled aiana-menu">
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Real-time Transcription</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Smart Summaries</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Multi-language Support</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Audio Input</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Export Options</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Pdf Extraction</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="col-6 sm-sm-100">
+                    <div class="block">
+                      <h4 class="aiana-h4 footer-h4">Resources</h4>
+                      <ul class="footer-list aiana-menu list-unstyled">
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">FAQs</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">User Guide</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Case Studies</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Contact Support</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                        <li class="anchorHover">
+                          <a href="#" class="aiana-desc">Using AI</a>
+                          <span class="sup"></span> <span class="dup"></span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 sm-sm-100 align-self-start">
+                <div class="block">
+                  <h4 class="aiana-h4 footer-h4">NewsLetter</h4>
+                  <p class="aiana-desc">
+                    Subscribe to stay updated with new TalkToText Pro features,
+                    AI meeting productivity tips, and the latest industry insights.
+                  </p>
+                <!-- Add this in generative/index.html, near the bottom if needed -->
+<form class="aiana-letter" action="{{ url_for('subscribe') }}" method="POST">
+  <input type="email" name="email" placeholder="Enter your email to subscribe" required>
+  <button type="submit">Subscribe</button>
+</form>
+
+                </div>
+              </div>
+            </div>
+          </div>
+          <img src="{{ url_for('static', filename='landing_assets/images/backgrounds/footerBG.png') }}" alt="BG" class="section-bg" />
+        </footer>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='landing_assets/lib/jQuery/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='landing_assets/framework/bootstrap/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='landing_assets/lib/swiperSlider/swiper-bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='landing_assets/lib/swiperSlider/swiper-gl.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/gh/peterhry/CircleType@2.3.1/dist/circletype.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/smooth-scrollbar/8.8.4/smooth-scrollbar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.marquee@1.6.0/jquery.marquee.min.js"></script>
+    <script src="{{ url_for('static', filename='landing_assets/theme/js/aiana.js') }}"></script>
+</body>
+</html>

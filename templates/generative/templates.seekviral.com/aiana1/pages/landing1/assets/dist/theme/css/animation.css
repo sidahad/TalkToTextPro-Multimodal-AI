@@ -1,0 +1,83 @@
+.obj.animateBall {
+  animation: slideToRight 1.5s forwards linear;
+}
+@keyframes slideToRight {
+  0% {
+    left: -50%;
+    transform: translateX(-50%);
+  }
+}
+.obj.animateBall img {
+  animation: rainbow1 forwards 1.5s cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+@keyframes rainbow1 {
+  0% {
+    top: 60%;
+    transform: translateY(-60%);
+  }
+  50% {
+    top: 80%;
+    transform: translateY(-80%);
+  }
+  75% {
+    top: 60%;
+    transform: translateY(-60%);
+  }
+}
+.obj.animateBall img:nth-child(2) {
+  animation: rainbow2 forwards 1.5s cubic-bezier(0.39, 0.575, 0.565, 1);
+}
+@keyframes rainbow2 {
+  0% {
+    top: -25%;
+    transform: translateY(-25%);
+  }
+  50% {
+    top: -50%;
+    transform: translateY(-50%);
+  }
+  75% {
+    top: -25%;
+    transform: translateY(-25%);
+  }
+}
+.hero-eye {
+  animation: eyeBlink 8s infinite ease-in-out;
+  opacity: 1;
+margin-right: -110px;
+}
+@keyframes eyeBlink {
+  0% {
+    opacity: 0.24;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.24;
+  }
+}
+.aiana-button:hover::after,
+.aiana-button:hover::before {
+  animation: glowMove 2.5s forwards ease-in-out;
+  animation-delay: 0.5s;
+}
+@keyframes glowMove {
+  0% {
+    width: 60%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+.rotateAnimation {
+  animation: rotate 5s infinite linear;
+  transform: rotate(360deg) translateX(-50%);
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg) translateX(-50%);
+  }
+}

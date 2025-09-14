@@ -1,0 +1,34 @@
+:root {
+  --primary-gradiant: linear-gradient(
+    90deg,
+    rgb(215, 10, 132) 0%,
+    rgb(81, 18, 127) 100%
+  );
+
+  --secondary-gradiant: linear-gradient(
+    90deg,
+      rgb(255, 255, 255) 0%,
+    rgb(255, 255, 255) 100%
+  );
+  --bg-color: rgb(14, 13, 26);
+  --bg-color-2: rgb(27, 26, 46);
+  --bg-color-3: rgb(255, 255, 255);
+  --menu-color: rgb(22, 25, 44);
+  --feature-bg: rgb(17, 16, 31);
+  --text-color: rgb(204, 204, 204);
+  --text-color-2: rgb(60, 60, 60);
+  --text-color-3: rgb(144, 144, 144);
+  --text-color-4: rgb(167, 167, 167);
+  --heading-color: rgb(255, 255, 255);
+  --marquee-bg: rgb(19, 19, 19);
+  --list-round-color: rgb(31, 29, 52);
+  --priceTable-bg: rgb(14, 14, 40);
+  --btn-bg-2: rgb(17, 17, 70);
+  --accordion-bg: rgb(15, 12, 37);
+  --serviceDetails: rgb(20, 18, 48);
+  --serviceBG: rgb(31, 30, 51);
+  --blog-bg: rgb(22, 22, 37);
+  --foter-bg: rgb(11, 11, 17);
+  --form-bg: rgb(20, 18, 48);
+  --copyright-bg: rgb(10, 10, 16);
+}

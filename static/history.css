@@ -1,0 +1,114 @@
+/* History Page Specific Styles */
+.history-container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+  position: relative;
+  z-index: 5;
+}
+
+.note-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.note-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.note-card h3 {
+  color: var(--primary-color);
+  margin-bottom: 15px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-content {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: var(--input-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  max-height: 300px;
+  overflow-y: auto;
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.note-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.note-actions button {
+  padding: 8px 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--button-bg);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.note-actions button:hover {
+  background: var(--button-hover-bg);
+  transform: translateY(-2px);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-color);
+}
+
+.empty-state i {
+  font-size: 48px;
+  margin-bottom: 15px;
+  color: var(--primary-color);
+}
+
+.empty-state h3 {
+  margin-bottom: 10px;
+  font-size: 20px;
+}
+
+.empty-state p {
+  opacity: 0.8;
+}
+
+/* Responsive adjustments for history page */
+@media (max-width: 768px) {
+  .history-container {
+    padding: 15px;
+  }
+  
+  .note-actions {
+    flex-direction: column;
+  }
+  
+  .note-actions button {
+    width: 100%;
+  }
+  
+  .note-card {
+    padding: 15px;
+  }
+  
+  .note-content {
+    padding: 12px;
+    max-height: 250px;
+  }
+}

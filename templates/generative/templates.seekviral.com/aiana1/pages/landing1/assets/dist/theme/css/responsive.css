@@ -1,0 +1,573 @@
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1350px;
+  }
+}
+
+@media (max-width: 1440px) {
+  nav {
+    padding: 15px 80px;
+    gap: 35px;
+  }
+  .aiana-menu,
+  .aiana-social {
+    gap: 30px;
+  }
+  .logo {
+    font-size: 35px;
+  }
+
+  .logo img {
+    width: 40px;
+  }
+  .shoppingBag {
+    margin-right: 20px;
+  }
+  .aiana-menu li a,
+  .contactArea article p,
+  .aiana-menu li .dup,
+  .aiana-menu li .sup {
+    font-size: 14px;
+  }
+
+  .contactArea .fa-phone-volume {
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+  .contactArea article h5 {
+    font-size: 23px;
+  }
+  .sideImg .slide {
+    min-width: 400px !important;
+  }
+  .obj img {
+    width: 140px;
+    height: 140px;
+  }
+  .aiana-h1 {
+    font-size: 100px;
+  }
+  .paddingCustom {
+    padding-left: 10px;
+  }
+  .aiana-desc {
+    font-size: 18px;
+  }
+  .aiana-list li {
+    font-size: 20px;
+  }
+  .aiana-list li img {
+    width: 22px;
+    height: 22px;
+  }
+  .progressSingle h2 {
+    font-size: 55px;
+  }
+  .progressSingle p {
+    font-size: 22px;
+  }
+  .gradient-h1 {
+    font-size: 60px;
+  }
+  .circleImg {
+    min-width: 600px !important;
+    min-height: 600px !important;
+  }
+}
+@media (max-width: 1200px) {
+  .aiana-d-md-none {
+    display: none !important;
+  }
+  nav {
+    justify-content: space-between;
+  }
+  .logo {
+    flex: 1;
+  }
+  .mobileNav {
+    display: block;
+  }
+  .sideImg .slide {
+    min-width: 300px !important;
+  }
+  .aiana-h1 {
+    font-size: 70px;
+  }
+  .paddingCustom {
+    padding-left: 20px;
+  }
+  .aiana-list li {
+    margin-top: 20px;
+    font-size: 18px;
+  }
+  .aiana-desc {
+    font-size: 16px;
+  }
+  .progressSingle h2 {
+    font-size: 40px;
+  }
+  .progressSingle p {
+    font-size: 18px;
+  }
+  .inputField {
+    padding: 0 20px;
+  }
+  .inputField input::placeholder,
+  .inputField input {
+    font-size: 16px;
+  }
+  .searchTags {
+    font-size: 14px;
+    width: 100%;
+  }
+  .aiana-button {
+    padding: 0 30px;
+    height: 50px;
+    font-size: 14px;
+  }
+  .aiana-clients {
+    margin: 70px 0;
+    margin-top: 40px;
+  }
+  .obj img {
+    width: 70px;
+    height: 70px;
+  }
+  .aiana-h2 {
+    font-size: 45px;
+  }
+  .aiana-heading {
+    margin: 20px 0;
+    height: 40px;
+    font-size: 16px;
+    padding: 0 25px;
+  }
+  .featureSingle {
+    padding: 40px 30px 30px 30px;
+  }
+  .featureIcon {
+    width: 80px;
+    height: 80px;
+    font-size: 30px;
+  }
+  .aiana-h3 {
+    font-size: 30px;
+    margin-bottom: 20px;
+  }
+  .aiana-list-2 li {
+    margin-bottom: 16px;
+    font-size: 16px;
+  }
+  .gradient-h1 {
+    font-size: 40px;
+  }
+  .circleImg {
+    min-width: 550px !important;
+    min-height: 550px !important;
+  }
+  .gradient-h1.text-end {
+    left: 0;
+  }
+  .gradient-h1.text-start {
+    right: 0;
+  }
+  .w-md-95 {
+    width: 95% !important;
+  }
+  #projects-tab {
+    right: -50%;
+  }
+  .aiana-h1.small {
+    font-size: 50px;
+  }
+  .aiana-projects {
+    padding-top: 75px;
+  }
+  .highlightText {
+    margin-bottom: 50px;
+  }
+  .aiana-details {
+    top: -80px;
+  }
+  .aiana-details-2 {
+    padding: 85px 0;
+  }
+  .aiana-gallery {
+    padding: 75px;
+  }
+  .aiana-priceTable {
+    margin: 80px 0;
+  }
+  .aiana-marquee {
+    margin-top: 75px;
+    height: 120px;
+  }
+  .priceTable {
+    padding: 25px 30px;
+  }
+  .aiana-h2.big {
+    font-size: 40px;
+  }
+  .aiana-h3 {
+    margin-bottom: 20px;
+    font-size: 30px;
+  }
+  .table-desc {
+    font-size: 16px;
+  }
+  .aiana-button-2 img {
+    width: 35px;
+    height: 35px;
+  }
+  .aiana-button-2 h5 {
+    font-size: 16px;
+  }
+  .aiana-button-2 p {
+    font-size: 14px;
+  }
+  .line {
+    margin: 10px 0;
+  }
+  .accordion-item {
+    padding: 20px;
+  }
+  .accordion-header button {
+    font-size: 24px;
+  }
+  .accordion-body {
+    font-size: 18px;
+  }
+  .servicedetails {
+    padding: 45px;
+  }
+  .aiana-faqs {
+    margin-bottom: 80px;
+  }
+  .aiana-services {
+    padding-bottom: 80px;
+  }
+  .aiana-testimonials {
+    margin: 80px 0;
+    --testimonialHeight: 310px;
+  }
+  .aiana-blog {
+    margin: 80px 0 calc(80px - var(--footer-transform)) 0;
+  }
+  .blogSingle {
+    padding: 30px 20px;
+  }
+  .aiana-h4 {
+    font-size: 20px;
+  }
+  .blogSingle {
+    height: 330px;
+  }
+  .aiana-letter button {
+    padding: 0 15px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 992px) {
+  .tab-50 {
+    width: 50%;
+  }
+  .tab-100 {
+    width: 100%;
+  }
+  .tab-none {
+    display: none;
+  }
+  .aiana-h2 {
+    font-size: 40px;
+  }
+
+  #projects-tab button {
+    font-size: 18px;
+  }
+  .project-single .bar {
+    height: 15px;
+  }
+  .w-md-95 {
+    width: 100% !important;
+  }
+  .aiana-h1.small {
+    font-size: 35px;
+  }
+  .aiana-list li {
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  .aiana-list li img {
+    width: 18px;
+    height: 18px;
+  }
+  .aiana-desc,
+  .aiana-list-2 li {
+    font-size: 14px;
+  }
+  .list-rounded {
+    width: 30px;
+    height: 30px;
+    margin-right: 10px;
+  }
+  .priceTable {
+    margin-top: 0px;
+  }
+  .accordion-header button {
+    font-size: 20px;
+  }
+  .accordion-body {
+    font-size: 16px;
+  }
+  .servicedetails {
+    padding: 20px;
+  }
+  .transfrom-x-130 {
+    transform: translateX(-90px);
+  }
+  .aiana-h3 {
+    font-size: 25px;
+  }
+  .aiana-h4.small {
+    font-size: 18px;
+  }
+  .about img {
+    width: 50px;
+    height: 50px;
+  }
+  .blogSingle {
+    padding: 20px 10px;
+  }
+  .featureIcon {
+    width: 60px;
+    height: 60px;
+    font-size: 22px;
+  }
+  .viewImg {
+    height: 300px;
+  }
+  .view .inner {
+    width: 75%;
+  }
+  footer {
+    padding: calc(var(--footer-transform) + 50px) 0 50px 0;
+  }
+}
+@media (max-width: 768px) {
+  .testimonialThumb {
+    --thumbHeight: 50px;
+  }
+  .sm-100 {
+    width: 100%;
+  }
+  .sm-50 {
+    width: 50%;
+  }
+  .sm-none {
+    display: none;
+  }
+  .circleImg {
+    min-width: 400px !important;
+    min-height: 400px !important;
+  }
+  #projects-tab {
+    right: -70%;
+  }
+  .aiana-list-2 {
+    gap: 20px !important;
+  }
+  .aiana-h2 {
+    font-size: 30px;
+  }
+  .aiana-h2.small {
+    font-size: 25px;
+  }
+  .priceTable {
+    padding: 20px 15px;
+    border-radius: 0;
+  }
+
+  .aiana-button-2 {
+    border-radius: 0;
+  }
+  .aiana-button-2 img {
+    width: 20px;
+    height: 20px;
+  }
+  .aiana-button-2 h5 {
+    font-size: 14px;
+  }
+  .aiana-button-2 p {
+    font-size: 12px;
+  }
+  img.active {
+    width: 50px;
+  }
+  .accordion-header button {
+    font-size: 16px;
+  }
+  .accordion-body {
+    font-size: 14px;
+  }
+  .aiana-testimonials {
+    --testimonialHeight: 165px;
+  }
+  .aiana-h3 {
+    font-size: 20px;
+  }
+  .testimonialImg .quotes {
+    width: 50px;
+  }
+}
+@media (max-width: 576px) {
+  .swiperTestimonials .aiana-h3 {
+    font-size: 12px;
+  }
+  nav {
+    padding: 10px 30px;
+  }
+  .loaderText {
+    font-size: 75px;
+  }
+  .projectInfo {
+    bottom: 20px;
+    left: 15px;
+  }
+  .projectInfo p {
+    height: 30px;
+    font-size: 12px;
+    padding: 0 15px;
+  }
+  .projectInfo h4 {
+    height: 40px;
+    padding: 0 15px;
+    font-size: 20px;
+  }
+  .copyright {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gradient-h1.text-end {
+    top: 0;
+  }
+  .gradient-h1.text-start {
+    bottom: 0;
+  }
+
+  .sm-sm-none {
+    display: none !important;
+  }
+  .sm-sm-100 {
+    width: 100% !important;
+  }
+  nav {
+    padding: 10px 30px;
+  }
+  .logo {
+    font-size: 25px;
+  }
+  .logo img {
+    width: 35px;
+  }
+  .mobNavInner {
+    width: 100%;
+  }
+  .aiana-h1 {
+    font-size: 45px;
+  }
+  .paddingCustom {
+    padding-left: 0;
+  }
+
+  .aiana-list li {
+    font-size: 12px;
+  }
+  .aiana-list li img {
+    width: 15px;
+    height: 15px;
+    margin-right: 7px;
+  }
+  .progressSingle h2 {
+    font-size: 30px;
+  }
+  .progressSingle p {
+    font-size: 16px;
+  }
+  .circleImg {
+    min-width: 200px !important;
+    min-height: 200px !important;
+  }
+  .gradient-h1 {
+    font-size: 15px;
+  }
+  .aiana-gallery {
+    padding: 0px;
+  }
+  .gallery.set1 img,
+  .gallery.set3 img {
+    height: 50px;
+  }
+  #projects-tab {
+    right: -80%;
+  }
+  #projects-tab button {
+    font-size: 15px;
+  }
+  .tab-pane .d-flex.w-md-95 {
+    flex-wrap: wrap;
+  }
+  .aiana-h1.small {
+    font-size: 25px;
+  }
+  .gallery.set2 img {
+    height: 200px;
+  }
+  .gallery.set1 img:nth-child(1),
+  .gallery.set3 img:nth-child(2) {
+    height: 80px;
+  }
+
+  .section-bg {
+    height: 105%;
+  }
+  .accordion-item img {
+    display: none;
+  }
+  .view .inner {
+    padding-top: 40px;
+    width: 100%;
+  }
+  .viewImg {
+    height: 150px;
+  }
+  .block {
+    margin-bottom: 30px;
+  }
+  .aiana-list-2.d-flex {
+    flex-wrap: wrap;
+  }
+  .transfrom-x-130 {
+    transform: translateX(-50px);
+  }
+
+  .testimonialImg .quotes {
+    width: 20px;
+  }
+  .about {
+    gap: 10px;
+  }
+  .aiana-h4.small {
+    font-size: 15px;
+  }
+  .backToTop {
+    bottom: 25px;
+    right: 25px;
+  }
+  .testimonialThumb {
+    --thumbHeight: 35px;
+  }
+}

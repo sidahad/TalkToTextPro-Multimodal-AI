@@ -1,0 +1,2046 @@
+This is my code
+Here is my original project structure
+Structure
+      TechWizGemini/
+│── app.py                  (your general chatbot - unchanged)
+│── ai_engine_gemini.py
+│── pdf_processing.py
+│── audio_processing.py
+│── db.py
+│── static/
+│     └── style.css
+│     └── chat.js 
+│── templates/
+│     └──── generative/
+│     |     └── index.html (Landing Page)
+│     └── index.html   (general chatbot UI)
+│     └── history.html
+│     └── login.html
+│     └── i.html
+│     └── light.html
+│── .env  
+│── requirements.txt   
+
+
+This is my ai_engine_gemini.py  
+# ai_engine_gemini.py
+import os, base64
+from dotenv import load_dotenv
+import google.generativeai as genai
+
+load_dotenv()
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# create model
+model = genai.GenerativeModel("models/gemini-1.5-flash")
+
+# start a chat session (keeps history inside Gemini session)
+chat_session = model.start_chat(history=[])
+
+def get_answer(query: str) -> str:
+    try:
+        response = chat_session.send_message(query)
+        return response.text
+    except Exception as e:
+        return f"Error generating answer: {str(e)}"
+
+def get_answer_with_image(query: str, image_file):
+    try:
+        if not image_file:
+            return get_answer(query), None
+        # read bytes
+        img_bytes = image_file.read()
+        # send image + text to model
+        # note: mime_type may be auto-detected; using image/png as generic
+        response = model.generate_content([
+            {"mime_type": "image/png", "data": img_bytes},
+            query
+        ])
+        encoded_image = base64.b64encode(img_bytes).decode("utf-8")
+        return response.text, encoded_image
+    except Exception as e:
+        return f"Error: {str(e)}", None
+
+This is my pdf_processing.py
+# pdf_processing.py
+import fitz  # PyMuPDF
+
+def extract_text_from_pdf(file):
+    """
+    file: Werkzeug FileStorage from Flask (file.read() available)
+    returns extracted text or an error message starting with 'Error'
+    """
+    try:
+        data = file.read()
+        if not data:
+            return "No data in PDF file."
+        doc = fitz.open(stream=data, filetype="pdf")
+        text = ""
+        for page in doc:
+            text += page.get_text()
+        doc.close()
+        return text if text.strip() else "No extractable text found in PDF."
+    except Exception as e:
+        return f"Error extracting PDF text: {str(e)}"
+
+This is my app.py
+
+
+from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
+from ai_engine_gemini import get_answer, get_answer_with_image
+from pdf_processing import extract_text_from_pdf
+from audio_processing import audio_file_to_text, translate_to_english
+from db import save_notes, get_notes, save_user, check_user
+from dotenv import load_dotenv
+import os, tempfile
+import google.generativeai as genai
+
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), ".env"))
+
+# Configure Gemini
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+app = Flask(__name__, static_folder="static", template_folder="templates")
+app.secret_key = os.getenv("SECRET_KEY", "supersecretkey")
+
+# In-memory storage
+chat_history = []
+pdf_memory = ""
+last_notes = ""
+
+# ---------- Routes ----------
+
+@app.route("/")
+def index():
+    return render_template("generative/index.html")
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    email = request.form.get("email")
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+    # Placeholder for actual subscription logic
+    print(f"New subscription from: {email}")
+    return redirect(url_for('index'))
+
+@app.route("/chat")
+def chat():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+    return render_template("index.html")
+
+@app.route("/light")
+def light():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+    return render_template("light.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if username and password and check_user(username, password):
+            session['user'] = username
+            return redirect(url_for('chat'))
+        return jsonify({"error": "Invalid username or password"}), 400
+    return render_template("login.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        if not username or not password:
+            return jsonify({"error": "Username and password are required"}), 400
+        if save_user(username, password):
+            session['user'] = username
+            return redirect(url_for('login'))
+        return jsonify({"error": "Username already exists"}), 400
+    return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    session.pop('user', None)
+    return redirect(url_for('index'))
+
+@app.route("/history")
+def history():
+    if not session.get('user'):
+        return redirect(url_for('login'))
+    notes = get_notes(session['user'])
+    return render_template("history.html", notes=notes)
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    global chat_history, pdf_memory, last_notes
+    data = request.get_json() or {}
+    query = data.get("query", "").strip()
+    if not query:
+        return jsonify({"error": "Empty query"}), 400
+
+    chat_history.append({"role": "user", "content": query})
+    context = "\n".join([f"{m['role']}: {m['content']}" for m in chat_history])
+
+    if pdf_memory and ("pdf" in query.lower() or "summarize" in query.lower()):
+        context += f"\n\nHere is PDF content:\n{pdf_memory[:3000]}"
+
+    answer = get_answer(context)
+    chat_history.append({"role": "bot", "content": answer})
+    last_notes = answer
+    return jsonify({"answer": answer})
+
+@app.route("/ask_with_image", methods=["POST"])
+def ask_with_image():
+    global chat_history, last_notes
+    query = request.form.get("query", "").strip()
+    image_file = request.files.get("image")
+    if not query:
+        return jsonify({"error": "Empty query"}), 400
+
+    answer, encoded_image = get_answer_with_image(query, image_file)
+    chat_history.append({"role": "user", "content": query})
+    chat_history.append({"role": "bot", "content": answer})
+    last_notes = answer
+    return jsonify({"answer": answer, "image": encoded_image})
+
+@app.route("/upload_pdf", methods=["POST"])
+def upload_pdf():
+    global pdf_memory, last_notes
+    if "pdf" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+    file = request.files["pdf"]
+    text = extract_text_from_pdf(file)
+    if text.startswith("Error"):
+        pdf_memory = ""
+    else:
+        pdf_memory = text
+        save_notes(session['user'], text, text, '', text)
+    last_notes = text
+    return jsonify({"text": text})
+
+@app.route("/summarize_pdf", methods=["POST"])
+def summarize_pdf():
+    global pdf_memory, last_notes, chat_history
+    if not pdf_memory:
+        return jsonify({"error": "No PDF loaded"}), 400
+    prompt = f"Please summarize the following meeting/document and produce: Executive Summary, Key Discussion Points, Decisions, Action Items, Sentiment.\n\n{pdf_memory[:30000]}"
+    answer = get_answer(prompt)
+    chat_history.append({"role": "bot", "content": answer})
+    last_notes = answer
+    save_notes(session['user'], pdf_memory, pdf_memory, '', answer)
+    return jsonify({"summary": answer})
+
+@app.route("/upload_audio", methods=["POST"])
+def upload_audio():
+    global last_notes, chat_history
+    if "audio" not in request.files:
+        return jsonify({"error": "No audio uploaded"}), 400
+    audio_file = request.files["audio"]
+    lang = request.form.get("lang", "en") or "en"
+
+    try:
+        transcript = audio_file_to_text(audio_file, lang=lang)
+        english_text = translate_to_english(transcript, src_lang=lang)
+        summary_prompt = f"Summarize the following meeting transcript. Provide Executive Summary, Key Points, Decisions, Action Items, and Sentiment.\n\n{english_text}"
+        summary = get_answer(summary_prompt)
+
+        chat_history.append({"role": "user", "content": f"[Uploaded audio transcript] {transcript[:200]}"})
+        chat_history.append({"role": "bot", "content": summary})
+        last_notes = summary
+        save_notes(session['user'], transcript, english_text, '', summary)
+
+        return jsonify({
+            "transcript": transcript,
+            "english_text": english_text,
+            "summary": summary
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/download_notes", methods=["GET"])
+def download_notes():
+    global last_notes
+    if not last_notes:
+        return "No notes available", 400
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".txt")
+    tmp.write(last_notes.encode("utf-8"))
+    tmp.flush()
+    tmp.close()
+    return send_file(tmp.name, as_attachment=True, download_name="meeting_notes.txt")
+
+@app.route("/_health")
+def health():
+    return "ok"
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5001)
+
+
+This is my requirements.txt 
+flask
+python-dotenv
+google-generativeai
+openai
+pymongo
+SpeechRecognition
+pydub
+deep-translator
+reportlab
+python-docx
+PyMuPDF
+bcrypt
+
+This is my  .env  
+GEMINI_API_KEY=AIzaSyCzWCrmhUbrMgTbKvQo_Dcv7EodHY-Q3AY
+
+This is my static/chat.js 
+const chatContainer = document.getElementById("chat-container");
+const chatForm = document.getElementById("chat-form");
+const queryInput = document.getElementById("query");
+const imageInput = document.getElementById("image");
+const micButton = document.getElementById("mic-button");
+const imagePreview = document.getElementById("image-preview");
+
+const pdfInput = document.getElementById("file");
+const extractedBox = document.getElementById("extracted-box");
+const copyBtn = document.getElementById("copy-btn");
+const summarizeBtn = document.getElementById("summarize-btn");
+
+const audioForm = document.getElementById("audio-form");
+
+const searchInput = document.getElementById("search");
+const chatSearch = document.getElementById("chat-search");
+
+let currentChat = "chat_" + Date.now();
+let pinned = JSON.parse(localStorage.getItem("pinned") || "[]");
+
+const recognition = window.SpeechRecognition || window.webkitSpeechRecognition ? 
+    new (window.SpeechRecognition || window.webkitSpeechRecognition)() : null;
+
+if (recognition) {
+    recognition.continuous = false;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+}
+
+const synth = window.speechSynthesis;
+let isSpeaking = false;
+let selectedVoice = 'male';
+
+function loadVoices() {
+    const voices = synth.getVoices();
+    return selectedVoice === 'male' ? voices.find(v => v.name.includes('Male') || v.gender === 'male') || voices[0] : voices.find(v => v.name.includes('Female') || v.gender === 'female') || voices[0];
+}
+
+let isRecording = false;
+
+function addMessage(text, sender, imageUrl = null, fileName = null) {
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble", sender);
+    if (imageUrl && sender === "user") {
+        const img = document.createElement("img");
+        img.src = imageUrl;
+        img.style.maxWidth = "200px";
+        img.style.borderRadius = "8px";
+        bubble.appendChild(img);
+    }
+    if (fileName) {
+        const fileSpan = document.createElement("span");
+        fileSpan.innerHTML = `Uploaded: ${fileName}<br>`;
+        bubble.appendChild(fileSpan);
+    }
+    if (text) {
+        const textSpan = document.createElement("span");
+        textSpan.innerHTML = text;
+        bubble.appendChild(textSpan);
+    }
+    if (sender === "bot" && text) {
+        const buttonContainer = document.createElement("div");
+        buttonContainer.classList.add("button-container");
+
+        const copyButton = document.createElement("button");
+        copyButton.textContent = "📋";
+        copyButton.className = "copy-btn";
+        copyButton.onclick = () => {
+            navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+        };
+        buttonContainer.appendChild(copyButton);
+
+        const speakAgainButton = document.createElement("button");
+        speakAgainButton.textContent = "🔊";
+        speakAgainButton.className = "speak-again-btn";
+        speakAgainButton.onclick = () => {
+            if (synth) speakText(text);
+        };
+        buttonContainer.appendChild(speakAgainButton);
+
+        const stopButton = document.createElement("button");
+        stopButton.textContent = "⏹️";
+        stopButton.className = "stop-btn";
+        stopButton.onclick = () => {
+            if (synth && isSpeaking) {
+                synth.cancel();
+                isSpeaking = false;
+            }
+        };
+        buttonContainer.appendChild(stopButton);
+
+        const voiceToggle = document.createElement("button");
+        voiceToggle.textContent = selectedVoice === 'male' ? "♂" : "♀";
+        voiceToggle.onclick = () => {
+            selectedVoice = selectedVoice === 'male' ? 'female' : 'male';
+            voiceToggle.textContent = selectedVoice === 'male' ? "♂" : "♀";
+        };
+        buttonContainer.appendChild(voiceToggle);
+
+        bubble.appendChild(buttonContainer);
+    }
+    if (chatContainer) {
+        chatContainer.appendChild(bubble);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    saveChatLocal(currentChat, sender, text, imageUrl, fileName);
+}
+
+function typeMessage(text, sender) {
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble", sender);
+    if (chatContainer) {
+        chatContainer.appendChild(bubble);
+    }
+    let i = 0;
+    const interval = setInterval(() => {
+        bubble.textContent = text.slice(0, i++);
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        if (i > text.length) {
+            clearInterval(interval);
+            if (sender === "bot" && text && synth) {
+                speakText(text);
+            }
+            if (sender === "bot" && text) {
+                const buttonContainer = document.createElement("div");
+                buttonContainer.classList.add("button-container");
+
+                const copyButton = document.createElement("button");
+                copyButton.textContent = "📋";
+                copyButton.className = "copy-btn";
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(text).then(() => alert("Copied!"));
+                };
+                buttonContainer.appendChild(copyButton);
+
+                const speakAgainButton = document.createElement("button");
+                speakAgainButton.textContent = "🔊";
+                speakAgainButton.className = "speak-again-btn";
+                speakAgainButton.onclick = () => {
+                    if (synth) speakText(text);
+                };
+                buttonContainer.appendChild(speakAgainButton);
+
+                const stopButton = document.createElement("button");
+                stopButton.textContent = "⏹️";
+                stopButton.className = "stop-btn";
+                stopButton.onclick = () => {
+                    if (synth && isSpeaking) {
+                        synth.cancel();
+                        isSpeaking = false;
+                    }
+                };
+                buttonContainer.appendChild(stopButton);
+
+                const voiceToggle = document.createElement("button");
+                voiceToggle.textContent = selectedVoice === 'male' ? "♂" : "♀";
+                voiceToggle.onclick = () => {
+                    selectedVoice = selectedVoice === 'male' ? 'female' : 'male';
+                    voiceToggle.textContent = selectedVoice === 'male' ? "♂" : "♀";
+                };
+                buttonContainer.appendChild(voiceToggle);
+
+                bubble.appendChild(buttonContainer);
+            }
+            saveChatLocal(currentChat, sender, text);
+        }
+    }, 12);
+}
+
+function speakText(text) {
+    if (isSpeaking || !synth) return;
+    isSpeaking = true;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.voice = loadVoices();
+    utterance.lang = 'en-US';
+    utterance.onend = () => {
+        isSpeaking = false;
+    };
+    synth.speak(utterance);
+}
+
+function showUploadedFile(file, type) {
+    const fileName = file.name;
+    let imageUrl = null;
+    if (type === "image" && imagePreview) {
+        imageUrl = URL.createObjectURL(file);
+        imagePreview.innerHTML = `<img src="${imageUrl}" style="max-width: 100px; border-radius: 8px; margin-top: 8px;">`;
+    } else if (fileName) {
+        addMessage(null, "user", null, fileName);
+    }
+}
+
+function clearImagePreview() {
+    if (imagePreview) {
+        imagePreview.innerHTML = "";
+    }
+}
+
+function hideSidebar() {
+    const rightSidebar = document.querySelector('.right-sidebar');
+    rightSidebar.classList.remove('active');
+    if (extractedBox) extractedBox.innerText = "";
+    if (copyBtn) copyBtn.style.display = "none";
+    if (summarizeBtn) summarizeBtn.style.display = "none";
+}
+
+if (micButton && recognition) {
+    micButton.addEventListener("click", () => {
+        if (isRecording) {
+            recognition.stop();
+            micButton.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            micButton.style.background = 'var(--button-bg)';
+        } else {
+            recognition.start();
+            micButton.innerHTML = '<i class="fa-solid fa-microphone-slash"></i>';
+            micButton.style.background = 'var(--button-hover-bg)';
+            queryInput.value = '';
+            queryInput.placeholder = 'Listening...';
+        }
+        isRecording = !isRecording;
+    });
+
+    recognition.onresult = (event) => {
+        const transcript = Array.from(event.results)
+            .map(result => result[0].transcript)
+            .join('');
+        queryInput.value = transcript;
+    };
+
+    recognition.onend = () => {
+        if (isRecording) {
+            isRecording = false;
+            micButton.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+            micButton.style.background = 'var(--button-bg)';
+            queryInput.placeholder = 'Type your message...';
+            if (queryInput.value.trim()) {
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        }
+    };
+
+    recognition.onerror = (event) => {
+        console.error('Speech recognition error:', event.error);
+        queryInput.placeholder = 'Type your message...';
+        isRecording = false;
+        micButton.innerHTML = '<i class="fa-solid fa-microphone"></i>';
+        micButton.style.background = 'var(--button-bg)';
+        alert('Speech recognition error: ' + event.error);
+    };
+} else {
+    if (micButton) micButton.style.display = 'none';
+}
+
+if (imageInput) {
+    imageInput.addEventListener("change", () => {
+        const imageFile = imageInput.files[0];
+        if (imageFile) {
+            showUploadedFile(imageFile, "image");
+        } else {
+            clearImagePreview();
+        }
+    });
+}
+
+if (chatForm) {
+    chatForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const query = queryInput.value.trim();
+        const imageFile = imageInput.files[0];
+        if (!query && !imageFile) return;
+        if (imageFile && query) {
+            const imageUrl = URL.createObjectURL(imageFile);
+            addMessage(query, "user", imageUrl, imageFile.name);
+        } else if (query) {
+            addMessage(query, "user");
+        } else if (imageFile) {
+            addMessage("Image uploaded", "user", URL.createObjectURL(imageFile), imageFile.name);
+        }
+        queryInput.value = "";
+        imageInput.value = "";
+        clearImagePreview();
+
+        const loadingBubble = document.createElement("div");
+        loadingBubble.classList.add("bubble", "bot", "loading");
+        loadingBubble.innerHTML = '<div class="spinner"></div>';
+        if (chatContainer) {
+            chatContainer.appendChild(loadingBubble);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        let data;
+        if (imageFile) {
+            const fd = new FormData();
+            fd.append("query", query || "Image uploaded");
+            fd.append("image", imageFile);
+            const res = await fetch("/ask_with_image", { method: "POST", body: fd });
+            data = await res.json();
+        } else if (query) {
+            const res = await fetch("/ask", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query })
+            });
+            data = await res.json();
+        }
+
+        loadingBubble.remove();
+        typeMessage(data.answer || "Error", "bot");
+    });
+}
+
+if (pdfInput) {
+    pdfInput.addEventListener("change", async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        showUploadedFile(file, "pdf");
+        const rightSidebar = document.querySelector('.right-sidebar');
+        rightSidebar.classList.add('active');
+        const fd = new FormData();
+        fd.append("pdf", file);
+        try {
+            const res = await fetch("/upload_pdf", { method: "POST", body: fd });
+            const data = await res.json();
+            extractedBox.innerText = data.text || data.error || "No response";
+            copyBtn.style.display = "inline-block";
+            summarizeBtn.style.display = "inline-block";
+            setTimeout(hideSidebar, 30000);
+        } catch (error) {
+            console.error('PDF upload error:', error);
+            extractedBox.innerText = "Error uploading PDF";
+        }
+    });
+}
+
+if (summarizeBtn) {
+    summarizeBtn.addEventListener("click", async () => {
+        summarizeBtn.disabled = true;
+        try {
+            const res = await fetch("/summarize_pdf", { method: "POST" });
+            const data = await res.json();
+            if (data.summary) {
+                addMessage("Summarize my PDF", "user");
+                typeMessage(data.summary, "bot");
+                setTimeout(hideSidebar, 30000);
+            } else {
+                alert(data.error || "Error summarizing PDF");
+            }
+        } catch (error) {
+            console.error('PDF summarize error:', error);
+            alert("Error summarizing PDF");
+        }
+        summarizeBtn.disabled = false;
+    });
+}
+
+if (audioForm) {
+    audioForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = document.getElementById("audio")?.files[0];
+        const lang = document.getElementById("lang")?.value || "en";
+        if (!file) {
+            console.error('No audio file selected');
+            return;
+        }
+        showUploadedFile(file, "audio");
+        const fd = new FormData();
+        fd.append("audio", file);
+        fd.append("lang", lang);
+        try {
+            const res = await fetch("/upload_audio", { method: "POST", body: fd });
+            const data = await res.json();
+            if (data.error) {
+                addMessage("Error: " + data.error, "bot");
+            } else {
+                addMessage("[Audio transcript] " + (data.transcript || ""), "user");
+                typeMessage(data.summary || "", "bot");
+            }
+        } catch (error) {
+            console.error('Audio upload error:', error);
+            addMessage("Error uploading audio", "bot");
+        }
+    });
+}
+
+if (copyBtn) {
+    copyBtn.addEventListener("click", () => {
+        navigator.clipboard.writeText(extractedBox.innerText);
+        alert("Copied!");
+        setTimeout(hideSidebar, 30000);
+    });
+}
+
+const closeSidebarBtn = document.querySelector('.close-sidebar');
+if (closeSidebarBtn) {
+    closeSidebarBtn.addEventListener('click', hideSidebar);
+}
+
+function saveChatLocal(chatId, sender, text, image = null, fileName = null) {
+    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    if (!chats[chatId]) chats[chatId] = [];
+    chats[chatId].push({ sender, text, image, fileName });
+    localStorage.setItem("chats", JSON.stringify(chats));
+    renderChatHistory();
+}
+
+function loadChat(chatId) {
+    if (chatContainer) {
+        chatContainer.innerHTML = "";
+    }
+    currentChat = chatId;
+    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    (chats[chatId] || []).forEach(m => addMessage(m.text, m.sender, m.image, m.fileName));
+}
+
+function deleteChat(chatId) {
+    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    delete chats[chatId];
+    localStorage.setItem("chats", JSON.stringify(chats));
+    let pinnedList = JSON.parse(localStorage.getItem("pinned") || "[]");
+    pinnedList = pinnedList.filter(id => id !== chatId);
+    localStorage.setItem("pinned", JSON.stringify(pinnedList));
+    renderChatHistory();
+    if (currentChat === chatId) {
+        currentChat = "chat_" + Date.now();
+        if (chatContainer) {
+            chatContainer.innerHTML = "";
+        }
+        saveChatLocal(currentChat, "system", "New chat started.");
+    }
+}
+
+function renderChatHistory() {
+    const chatHistoryDiv = document.getElementById("chat-history");
+    const pinnedDiv = document.getElementById("pinned-history");
+    chatHistoryDiv.innerHTML = "";
+    pinnedDiv.innerHTML = "";
+    let chats = JSON.parse(localStorage.getItem("chats") || "{}");
+    let pinned = JSON.parse(localStorage.getItem("pinned") || "[]");
+
+    Object.keys(chats).forEach(id => {
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "flex";
+        wrapper.style.alignItems = "center";
+        const btn = document.createElement("button");
+        btn.textContent = id;
+        btn.className = "load-btn";
+        btn.onclick = () => loadChat(id);
+        const pinBtn = document.createElement("button");
+        pinBtn.textContent = pinned.includes(id) ? "📌" : "📍";
+        pinBtn.onclick = (e) => { e.stopPropagation(); togglePin(id); };
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "🗑️";
+        deleteBtn.style.marginLeft = "5px";
+        deleteBtn.onclick = (e) => { e.stopPropagation(); if (confirm("Delete this chat?")) deleteChat(id); };
+
+        wrapper.appendChild(btn);
+        wrapper.appendChild(pinBtn);
+        wrapper.appendChild(deleteBtn);
+
+        if (pinned.includes(id)) pinnedDiv.appendChild(wrapper); else chatHistoryDiv.appendChild(wrapper);
+    });
+    filterHistory();
+}
+
+function togglePin(id) {
+    let pinned = JSON.parse(localStorage.getItem("pinned") || "[]");
+    if (pinned.includes(id)) pinned = pinned.filter(x => x !== id); else pinned.push(id);
+    localStorage.setItem("pinned", JSON.stringify(pinned));
+    renderChatHistory();
+}
+
+document.getElementById("new-chat").addEventListener("click", () => {
+    currentChat = "chat_" + Date.now();
+    if (chatContainer) {
+        chatContainer.innerHTML = "";
+    }
+    saveChatLocal(currentChat, "system", "New chat started.");
+});
+
+document.getElementById("clear-all").addEventListener("click", () => {
+    if (confirm("Clear all chat history?")) {
+        localStorage.removeItem("chats");
+        localStorage.removeItem("pinned");
+        renderChatHistory();
+        currentChat = "chat_" + Date.now();
+        if (chatContainer) {
+            chatContainer.innerHTML = "";
+        }
+        saveChatLocal(currentChat, "system", "New chat started.");
+    }
+});
+
+function filterHistory() {
+    const term = searchInput.value.toLowerCase();
+    const wrappers = document.querySelectorAll('.chat-history > div');
+    wrappers.forEach(wrapper => {
+        const btn = wrapper.querySelector('.load-btn');
+        if (btn.textContent.toLowerCase().includes(term)) {
+            wrapper.style.display = 'flex';
+        } else {
+            wrapper.style.display = 'none';
+        }
+    });
+}
+searchInput.addEventListener('input', filterHistory);
+
+if (chatSearch) {
+    chatSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const bubbles = document.querySelectorAll('.bubble');
+        bubbles.forEach(bubble => {
+            const textSpan = bubble.querySelector('span');
+            const text = textSpan ? textSpan.innerText.toLowerCase() : '';
+            if (term && text.includes(term)) {
+                bubble.classList.add('highlighted');
+            } else {
+                bubble.classList.remove('highlighted');
+            }
+        });
+    });
+}
+
+document.getElementById('mode-toggle').addEventListener('click', () => {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/chat') {
+        window.location.href = '/light';
+    } else if (currentPath === '/light') {
+        window.location.href = '/chat';
+    }
+});
+
+const leftSidebar = document.querySelector('.left-sidebar');
+const rightSidebar = document.querySelector('.right-sidebar');
+const leftHamburger = document.getElementById('left-toggle');
+const rightHamburger = document.getElementById("right-toggle");
+
+if (leftHamburger) {
+    leftHamburger.onclick = () => leftSidebar.classList.toggle('collapsed');
+}
+
+if (rightHamburger) {
+    rightHamburger.onclick = () => rightSidebar.classList.toggle('active');
+}
+
+renderChatHistory();
+
+window.addEventListener('resize', () => {
+    if (window.innerWidth < 768) {
+        leftSidebar.classList.add('collapsed');
+        rightSidebar.classList.remove('active');
+    } else {
+        leftSidebar.classList.remove('collapsed');
+    }
+});
+if (window.innerWidth < 768) {
+    leftSidebar.classList.add('collapsed');
+    rightSidebar.classList.remove('active');
+}
+
+
+This is my static/style.css
+
+/* Default (Dark) Theme */
+:root {
+  --bg-color: #1a1a2e;
+  --text-color: #e0e0ff;
+  --primary-color: #6b48ff;
+  --secondary-color: #00d4ff;
+  --sidebar-bg: #16213e;
+  --bubble-user-bg: #6b48ff;
+  --bubble-bot-bg: #2b2b4b;
+  --input-bg: #2b2b4b;
+  --button-bg: #6b48ff;
+  --button-hover-bg: #5539cc;
+  --upload-bar-bg: #16213e;
+  --border-color: #3b3b5b;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-color: #f5faff;
+  --text-color: #102050;
+  --primary-color: #007bff;
+  --secondary-color: #ff6f91;
+  --sidebar-bg: #e9ecef;
+  --bubble-user-bg: #007bff;
+  --bubble-bot-bg: #dee2e6;
+  --input-bg: #ffffff;
+  --button-bg: #007bff;
+  --button-hover-bg: #0056b3;
+  --upload-bar-bg: #e9ecef;
+  --border-color: #e0e0e0;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-color);
+  color: var(--text-color);
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.left-sidebar {
+  width: 250px;
+  background: var(--sidebar-bg);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100%;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.right-sidebar {
+  width: 300px;
+  background: var(--sidebar-bg);
+  padding: 15px;
+  display: none;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100%;
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.right-sidebar.active {
+  display: flex;
+}
+
+.close-sidebar {
+  align-self: flex-end;
+  background: var(--button-bg);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.close-sidebar:hover {
+  background: var(--button-hover-bg);
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin-left: 250px;
+  position: relative;
+  z-index: 5;
+}
+
+.sidebar h2, .sidebar h3 {
+  color: var(--primary-color);
+  font-size: 16px;
+  margin: 10px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.logo-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.logo-img {
+  width: 70px;
+  height: 32px;
+  border-radius: 8px;
+  border: 2px solid var(--primary-color);
+}
+
+.logo-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.search-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.search-wrapper input {
+  width: 100%;
+  padding: 12px 12px 12px 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.search-wrapper input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
+  outline: none;
+}
+
+.search-wrapper .icon {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.chat-history {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.chat-history div {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.chat-history .load-btn {
+  flex: 1;
+  background: transparent;
+  color: var(--text-color);
+  text-align: left;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+}
+
+.chat-history .load-btn:hover {
+  background: var(--input-bg);
+}
+
+.pinned {
+  background: var(--input-bg) !important;
+  border-left: 4px solid var(--primary-color);
+}
+
+.new-chat, .clear-history {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  background: var(--button-bg);
+  color: #ffffff;
+}
+
+.new-chat:hover, .clear-history:hover {
+  background: var(--button-hover-bg);
+}
+
+.header {
+  padding: 10px;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 8;
+}
+
+.header h1 {
+  flex: 1;
+  font-size: 20px;
+  color: var(--primary-color);
+}
+
+.header button, .header a {
+  background: var(--button-bg);
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.header button:hover, .header a:hover {
+  background: var(--button-hover-bg);
+}
+
+.chat-search-wrapper {
+  padding: 10px;
+  background: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  z-index: 7;
+}
+
+.chat-search-wrapper input {
+  width: 100%;
+  max-width: 600px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.chat-search-wrapper input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
+  outline: none;
+}
+
+.chat-container {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  z-index: 5;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.user {
+  align-self: flex-end;
+  background: var(--bubble-user-bg);
+  color: #ffffff;
+  border-bottom-right-radius: 4px;
+}
+
+.bot {
+  align-self: flex-start;
+  background: var(--bubble-bot-bg);
+  color: var(--text-color);
+  border-bottom-left-radius: 4px;
+}
+
+.bubble:hover {
+  transform: scale(1.02);
+}
+
+.highlighted {
+  background: #fff3cd !important;
+  color: #333333 !important;
+}
+
+.bubble img {
+  max-width: 200px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.button-container {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: flex-end;
+}
+
+.copy-btn, .speak-again-btn, .stop-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  background: var(--button-bg);
+  color: #ffffff;
+}
+
+.copy-btn:hover, .speak-again-btn:hover, .stop-btn:hover {
+  background: var(--button-hover-bg);
+}
+
+.loading .spinner {
+  border: 4px solid var(--bubble-bot-bg);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+form {
+  display: flex;
+  padding: 10px;
+  background: var(--bg-color);
+  border-top: 1px solid var(--border-color);
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  z-index: 7;
+}
+
+input[type="text"], input[type="password"] {
+  flex: 1;
+  max-width: 600px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
+  outline: none;
+}
+
+button {
+  background: var(--button-bg);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+button:hover {
+  background: var(--button-hover-bg);
+}
+
+.upload-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 10px;
+  background: var(--upload-bar-bg);
+  border-top: 1px solid var(--border-color);
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 7;
+}
+
+.upload-btn {
+  background: var(--button-bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.upload-btn:hover {
+  background: var(--button-hover-bg);
+}
+
+#audio-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+#audio-form select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  font-size: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+#audio-form select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 8px rgba(107, 72, 255, 0.3);
+  outline: none;
+}
+
+.pdf-section, .audio-section {
+  margin-bottom: 15px;
+}
+
+#extracted-box, #transcript-box, #summary-box {
+  background: var(--input-bg);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.suggestions button {
+  padding: 8px 12px;
+  font-size: 13px;
+  background: var(--button-bg);
+  color: #ffffff;
+  border-radius: 8px;
+  border: none;
+}
+
+.suggestions button:hover {
+  background: var(--button-hover-bg);
+}
+
+#left-toggle, #right-toggle {
+  position: fixed;
+  top: 10px;
+  z-index: 20;
+  background: transparent;
+  color: var(--primary-color);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#left-toggle { left: 10px; }
+#right-toggle { right: 10px; }
+
+#left-toggle:hover, #right-toggle:hover {
+  color: var(--button-hover-bg);
+}
+
+@media (max-width: 1200px) {
+  .left-sidebar { width: 200px; }
+  .right-sidebar { width: 250px; }
+  .main { margin-left: 200px; }
+}
+
+@media (max-width: 768px) {
+  .left-sidebar, .right-sidebar { position: absolute; }
+  .main { margin-left: 0; }
+  .header { flex-wrap: wrap; }
+  .chat-container { padding: 10px; }
+  .upload-bar { flex-direction: column; align-items: stretch; }
+  .bubble { max-width: 90%; }
+  .chat-search-wrapper input, input[type="text"], input[type="password"] {
+    max-width: 100%;
+  }
+  form { flex-direction: column; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+This is my templates/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <a href="/history"><i class="fa-solid fa-history"></i> History</a>
+      <a href="/logout"><i class="fa-solid fa-sign-out"></i> Logout</a>
+    </div>
+    <div class="chat-search-wrapper">
+      <input id="chat-search" placeholder="Search in this chat..." />
+    </div>
+    <div class="chat-container" id="chat-container"></div>
+    <form id="chat-form" enctype="multipart/form-data">
+      <input type="text" id="query" placeholder="Type your message..." />
+      <button type="button" id="mic-button"><i class="fa-solid fa-microphone"></i></button>
+      <button type="submit">Send</button>
+      <div class="image-preview" id="image-preview"></div>
+    </form>
+    <div class="upload-bar">
+      <input type="file" id="image" accept="image/*" style="display:none;" />
+      <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
+      <input type="file" id="file" accept="application/pdf" style="display:none;" />
+      <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
+      <form id="audio-form" enctype="multipart/form-data">
+        <input type="file" id="audio" accept="audio/*" style="display:none;" />
+        <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+        </select>
+        <button type="submit">Upload & Process</button>
+      </form>
+      <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
+      <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
+    </div>
+  </div>
+
+  <button id="right-toggle" style="display: none;"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <button class="close-sidebar"><i class="fa-solid fa-times"></i> Close</button>
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+This is my templates/login.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login - TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <a href="{{ url_for('register') }}"><i class="fa-solid fa-user-plus"></i> Register</a>
+    </div>
+    <div class="chat-container" style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100%;">
+      <div class="logo-wrapper">
+        <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+        <span class="logo-text">TalkToText Pro</span>
+      </div>
+      <form method="POST" style="width: 100%; max-width: 400px; padding: 20px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; gap: 15px;">
+        <label for="username" style="color: var(--text-color); font-size: 14px;">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required>
+        <label for="password" style="color: var(--text-color); font-size: 14px;">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter password" required>
+        <button type="submit">Login</button>
+        <p style="text-align: center; color: var(--text-color); font-size: 14px;">
+          Don't have an account? <a href="{{ url_for('register') }}" style="color: var(--primary-color);">Register</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <button id="right-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+    <div class="audio-section">
+      <h4><i class="fa-solid fa-newspaper"></i> Transcript</h4>
+      <div id="transcript-box"></div>
+      <h4><i class="fa-solid fa-file-lines"></i> Summary</h4>
+      <div id="summary-box"></div>
+      <a id="download-link" href="/download_notes" style="display:none;">Download Notes</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+This is my templates/register.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register - TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <a href="{{ url_for('login') }}"><i class="fa-solid fa-sign-in"></i> Login</a>
+    </div>
+    <div class="chat-container" style="display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100%;">
+      <div class="logo-wrapper">
+        <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+        <span class="logo-text">TalkToText Pro</span>
+      </div>
+      <form method="POST" style="width: 100%; max-width: 400px; padding: 20px; background: var(--input-bg); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); display: flex; flex-direction: column; gap: 15px;">
+        <label for="username" style="color: var(--text-color); font-size: 14px;">Username</label>
+        <input type="text" id="username" name="username" placeholder="Enter username" required>
+        <label for="password" style="color: var(--text-color); font-size: 14px;">Password</label>
+        <input type="password" id="password" name="password" placeholder="Enter password" required>
+        <button type="submit">Register</button>
+        <p style="text-align: center; color: var(--text-color); font-size: 14px;">
+          Already have an account? <a href="{{ url_for('login') }}" style="color: var(--primary-color);">Login</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <button id="right-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+    <div class="audio-section">
+      <h4><i class="fa-solid fa-newspaper"></i> Transcript</h4>
+      <div id="transcript-box"></div>
+      <h4><i class="fa-solid fa-file-lines"></i> Summary</h4>
+      <div id="summary-box"></div>
+      <a id="download-link" href="/download_notes" style="display:none;">Download Notes</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+This is my templates/light.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="light">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
+      <button id="mode-toggle">🌙 Dark</button>
+      <a href="/history"><i class="fa-solid fa-history"></i> History</a>
+      <a href="/logout"><i class="fa-solid fa-sign-out"></i> Logout</a>
+    </div>
+    <div class="chat-search-wrapper">
+      <input id="chat-search" placeholder="Search in this chat..." />
+    </div>
+    <div class="chat-container" id="chat-container"></div>
+    <form id="chat-form" enctype="multipart/form-data">
+      <input type="text" id="query" placeholder="Type your message..." />
+      <button type="button" id="mic-button"><i class="fa-solid fa-microphone"></i></button>
+      <button type="submit">Send</button>
+      <div class="image-preview" id="image-preview"></div>
+    </form>
+    <div class="upload-bar">
+      <input type="file" id="image" accept="image/*" style="display:none;" />
+      <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
+      <input type="file" id="file" accept="application/pdf" style="display:none;" />
+      <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
+      <form id="audio-form" enctype="multipart/form-data">
+        <input type="file" id="audio" accept="audio/*" style="display:none;" />
+        <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+        </select>
+        <button type="submit">Upload & Process</button>
+      </form>
+      <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
+      <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
+    </div>
+  </div>
+
+  <button id="right-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+    <div class="audio-section">
+      <h4><i class="fa-solid fa-newspaper"></i> Transcript</h4>
+      <div id="transcript-box"></div>
+      <h4><i class="fa-solid fa-file-lines"></i> Summary</h4>
+      <div id="summary-box"></div>
+      <a id="download-link" href="/download_notes" style="display:none;">Download Notes</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+this  is my  templates/i.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <div class="upload-wrapper" style="width: 20%;">
+        <button class="upload-btn" id="new-chat">
+          <i class="fa-regular fa-comment-dots" style="margin-right: 6px;"></i>New Chat
+        </button>
+      </div>
+      <h1 style="width: 45%;">
+        <i class="fa-regular fa-comment-dots" style="margin-right: 5px;"></i>
+        TechWiz TalkToText Pro
+      </h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <div class="upload-wrapper" style="width: 10%; margin-right: 3px;">
+        <a href="{{ url_for('login') }}" class="upload-btn">
+          <i class="fa-solid fa-right-to-bracket"></i> Login
+        </a>
+      </div>
+      <div class="upload-wrapper" style="width: 10%;">
+        <a href="{{ url_for('register') }}" class="upload-btn">
+          <i class="fa-solid fa-user-plus"></i> Signup
+        </a>
+      </div>
+    </div>
+    <div class="chat-search-wrapper">
+      <input id="chat-search" placeholder="Search in this chat..." />
+    </div>
+    <div class="chat-container" id="chat-container">
+      <div class="bubble bot">Hi there I’m the T T T .</div>
+      <div class="bubble bot">Oh! I mean Talk To Text.</div>
+    </div>
+    <form id="chat-form" enctype="multipart/form-data">
+      <input type="text" id="query" placeholder="Type your message..." required />
+      <button type="submit">Send</button>
+      <div class="image-preview" id="image-preview"></div>
+    </form>
+    <div class="upload-bar">
+      <input type="file" id="image" accept="image/*" style="display:none;" />
+      <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
+      <input type="file" id="file" accept="application/pdf" style="display:none;" />
+      <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
+      <form id="audio-form" enctype="multipart/form-data">
+        <input type="file" id="audio" accept="audio/*" style="display:none;" />
+        <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+        </select>
+        <button type="submit">Upload & Process</button>
+      </form>
+      <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
+      <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
+    </div>
+    <div class="audio-section">
+      <div style="display: flex;">
+        <div style="width: 50%;">
+          <h4 style="margin: 0px;"><i class="fa-solid fa-newspaper"></i> Transcript</h4>
+          <div id="transcript-box"></div>
+        </div>
+        <div style="width: 50%;">
+          <h4 style="margin: 0px;"><i class="fa-solid fa-file-lines"></i> Summary</h4>
+          <div id="summary-box"></div>
+        </div>
+      </div>
+      <a id="download-link" href="/download_notes" style="display:none;">Download Notes</a>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+This is my templates/history.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>History - TechWiz TalkToText Pro</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body data-theme="dark">
+  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
+    </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
+    <button class="new-chat" id="new-chat">New Chat</button>
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1><i class="fa-solid fa-history"></i> Meeting History</h1>
+      <button id="mode-toggle">☀️ Light</button>
+      <a href="/"><i class="fa-solid fa-home"></i> Home</a>
+      <a href="/logout"><i class="fa-solid fa-sign-out"></i> Logout</a>
+    </div>
+    <div class="chat-container">
+      <div class="container" style="padding: 20px; max-width: 800px; margin: auto; position: relative; z-index: 5;">
+        {% if notes %}
+          {% for note in notes %}
+            <div class="card bubble bot" style="max-width: 100%;">
+              <h3><i class="fa-solid fa-calendar"></i> Saved Notes</h3>
+              <pre style="white-space: pre-wrap;">{{ note.final_notes }}</pre>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No notes found yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="upload-bar">
+      <input type="file" id="file" accept="application/pdf" style="display:none;" />
+      <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
+      <form id="audio-form" enctype="multipart/form-data">
+        <input type="file" id="audio" accept="audio/*" style="display:none;" />
+        <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
+        <select id="lang">
+          <option value="en">English</option>
+          <option value="ur">Urdu</option>
+          <option value="fr">French</option>
+          <option value="de">German</option>
+        </select>
+        <button type="submit">Upload & Process</button>
+      </form>
+    </div>
+  </div>
+
+  <button id="right-toggle" style="display: none;"><i class="fa-solid fa-bars"></i></button>
+  <div class="right-sidebar">
+    <button class="close-sidebar"><i class="fa-solid fa-times"></i> Close</button>
+    <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
+    <div class="pdf-section">
+      <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
+      <div id="extracted-box"></div>
+      <button id="copy-btn" style="display:none;">Copy</button>
+      <button id="summarize-btn" style="display:none;">Summarize</button>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+</body>
+</html>
+
+
+This is my audio_processing.py
+# audio_processing.py
+import speech_recognition as sr
+from pydub import AudioSegment
+from deep_translator import GoogleTranslator
+import tempfile
+import os
+
+def audio_file_to_text(file_storage, lang="en"):
+    """
+    file_storage: Werkzeug FileStorage object (from Flask request.files['audio'])
+    lang: language code used by Google recognizer (e.g., 'en', 'ur', 'fr')
+    returns: transcript text
+    """
+    # save to temp file (preserve original extension if available)
+    suffix = ""
+    if hasattr(file_storage, "filename") and "." in file_storage.filename:
+        suffix = os.path.splitext(file_storage.filename)[1]
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix or ".mp3")
+    file_storage.save(tmp.name)
+    tmp.flush()
+    tmp.close()
+
+    # convert to wav (SpeechRecognition works well with WAV)
+    wav_tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+    sound = AudioSegment.from_file(tmp.name)
+    sound.export(wav_tmp.name, format="wav")
+    wav_tmp.flush()
+    wav_tmp.close()
+
+    try:
+        r = sr.Recognizer()
+        with sr.AudioFile(wav_tmp.name) as source:
+            audio = r.record(source)
+            text = r.recognize_google(audio, language=lang)
+    finally:
+        # cleanup temp files
+        try:
+            os.remove(tmp.name)
+        except: pass
+        try:
+            os.remove(wav_tmp.name)
+        except: pass
+
+    return text
+
+def translate_to_english(text, src_lang="en"):
+    """
+    Translate 'text' to English if src_lang != 'en'.
+    If translation fails, returns original text.
+    """
+    try:
+        if not text.strip():
+            return text
+        if src_lang.lower() == "en":
+            return text
+        return GoogleTranslator(source=src_lang, target="en").translate(text)
+    except Exception:
+        return text
+
+
+this is my db.py
+import sqlite3
+from pymongo import MongoClient
+import os
+from dotenv import load_dotenv
+import bcrypt
+
+load_dotenv()
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+client = MongoClient(MONGO_URI)
+db_mongo = client["talktotext"]
+notes_collection = db_mongo["meeting_notes"]
+
+# SQLite database setup
+SQLITE_DB = "users.db"
+
+def init_sqlite_db():
+    conn = sqlite3.connect(SQLITE_DB)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+# Initialize the database on import
+init_sqlite_db()
+
+def save_user(username, password):
+    """
+    Save a new user to SQLite database with hashed password.
+    Returns True if successful, False if username already exists.
+    """
+    try:
+        conn = sqlite3.connect(SQLITE_DB)
+        cursor = conn.cursor()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+        cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password))
+        conn.commit()
+        conn.close()
+        return True
+    except sqlite3.IntegrityError:
+        conn.close()
+        return False
+
+def check_user(username, password):
+    """
+    Check if user exists and password is correct.
+    Returns True if credentials are valid, False otherwise.
+    """
+    conn = sqlite3.connect(SQLITE_DB)
+    cursor = conn.cursor()
+    cursor.execute("SELECT password FROM users WHERE username = ?", (username,))
+    result = cursor.fetchone()
+    conn.close()
+    if result:
+        return bcrypt.checkpw(password.encode('utf-8'), result[0])
+    return False
+
+def save_notes(user, raw, translated, cleaned, final_notes):
+    notes_collection.insert_one({
+        "user": user,
+        "raw_transcript": raw,
+        "translated": translated,
+        "cleaned": cleaned,
+        "final_notes": final_notes
+    })
+
+def get_notes(user):
+    return list(notes_collection.find({"user": user}))
