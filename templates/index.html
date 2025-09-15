@@ -12,89 +12,87 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
   <style>
     .upload-barrrr {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-.upload-barrrr > div {
-  flex: 1;
-}
+    .upload-barrrr>div {
+      flex: 1;
+    }
 
-.upload-btn {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  text-align: center;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background 0.3s;
-  height: 40px;
-}
+    .upload-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s;
+      height: 40px;
+    }
 
+    @media (min-width: 768px) {
+      .upload-barrrr {
+        flex-wrap: nowrap;
+      }
 
-/* ---- Responsive Tweaks ---- */
-@media (min-width: 768px) {
-  .upload-barrrr {
-    flex-wrap: nowrap; /* desktop par same line */
-  }
+      .upload-barrrr>div {
+        flex: unset;
+        width: auto;
+      }
 
-  .upload-barrrr > div {
-    flex: unset; /* equal spread hatao */
-    width: auto; /* natural size rakho */
-  }
+      .upload-btn {
+        width: auto;
+        min-width: 100px;
+      }
+    }
 
-  .upload-btn {
-    width: auto; /* sirf content ke hisaab se */
-    min-width: 100px; /* thoda balance ke liye */
-  }
-}
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
 
-  .infom{
-    display: flex;
-  }
-}
-@media (min-width: 768px) {
+      .infom {
+        display: flex;
+      }
+    }
 
-  .infom { 
-    flex-direction: row;
-    padding: 10px;
-  }
-}
+    @media (min-width: 768px) {
+
+      .infom {
+        flex-direction: row;
+        padding: 10px;
+      }
+    }
   </style>
 </head>
 
 <body data-theme="dark">
-    <!-- <button id="left-toggle"><i class="fa-solid fa-bars"></i></button> -->
-    <div class="left-sidebar">
-      <div class="logo-wrapper">
-        <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo"
-          class="logo-img">
-        <span class="logo-text">TalkToText Pro</span>
-      </div>
-      <div class="search-wrapper">
-        <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-        <input id="search" placeholder="Search history..." />
-      </div>
-      <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
-      <div id="pinned-history" class="chat-history"></div>
-      <h3><i class="fa-solid fa-comments"></i> Chats</h3>
-      <div id="chat-history" class="chat-history"></div>
-
-      <button class="clear-history" id="clear-all">Clear All</button>
+  <div class="left-sidebar">
+    <div class="logo-wrapper">
+      <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo"
+        class="logo-img">
+      <span class="logo-text">TalkToText Pro</span>
     </div>
+    <div class="search-wrapper">
+      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+      <input id="search" placeholder="Search history..." />
+    </div>
+    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
+    <div id="pinned-history" class="chat-history"></div>
+    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
+    <div id="chat-history" class="chat-history"></div>
 
-    <div class="main">
-      <div class="header">
-        <h1> <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" style="height: 30px; width: 30px;" alt="Logo"
-         > TechWiz TalkToText Pro</h1>
-          <div class="upload-barrrr" style="flex-wrap: nowrap;">
-       <div>
-         <button class="new-chat" id="new-chat" style="height: 40px;">New Chat</button>
-       </div>
-        <!-- Theme Selector -->
+    <button class="clear-history" id="clear-all">Clear All</button>
+  </div>
+
+  <div class="main">
+    <div class="header">
+      <h1> <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}"
+          style="height: 30px; width: 30px;" alt="Logo"> TechWiz TalkToText Pro</h1>
+      <div class="upload-barrrr" style="flex-wrap: nowrap;">
+        <div>
+          <button class="new-chat" id="new-chat" style="height: 40px;">New Chat</button>
+        </div>
         <div class="theme-selector ">
           <button class="theme-button" style="height: 40px;">
             <i class="fa-solid fa-palette"></i> Theme
@@ -123,164 +121,41 @@
           </div>
         </div>
 
-      <div >
+        <div>
           <a href="/history"><i class="fa-solid fa-history"></i> History</a>
-      </div>
+        </div>
         <div><a href="/logout"><i class="fa-solid fa-sign-out"></i> Logout</a></div>
-        </div>
       </div>
-      <div class="chat-search-wrapper">
-        <input id="chat-search" placeholder="Search in this chat..." />
-      </div>
-      <div class="chat-container" id="chat-container"></div>
-      <form id="chat-form" class="infom" enctype="multipart/form-data" style="display: flex;">
-       
-          <input type="text" id="query" placeholder="Type your message..." />
-         <button type="button" id="mic-button"><i class="fa-solid fa-microphone"></i></button>
-          <button type="submit">Send</button>
-         <div class="image-preview" id="image-preview"></div>
-      </form>
-      <div class="upload-bar">
-        <div class="upload-barrrr">
-          <div>
-            <input type="file" id="image" accept="image/*" style="display:none;" />
-            <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
-          </div>
-
-          <div>
-            <input type="file" id="file" accept="application/pdf" style="display:none;" />
-            <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
-          </div>
-
-          <div>
-            <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
-          </div>
-        </div>
-
-        <form id="audio-form" enctype="multipart/form-data" style="border: 0px;">
-          <input type="file" id="audio" accept="audio/*" style="display:none;" />
-          <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
-          <select id="lang">
-            <option value="en">English</option>
-            <option value="ur">Urdu</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-          </select>
-          <button  class="upload-btn" type="submit">Process</button>
-        </form>
-        <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
-      </div>
-    </div>
-
-    <button id="right-toggle" style="display: none;"><i class="fa-solid fa-bars"></i></button>
-    <div class="right-sidebar">
-      <button class="close-sidebar"><i class="fa-solid fa-times"></i> Close</button>
-      <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
-      <div class="pdf-section">
-        <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
-        <div id="extracted-box"></div>
-        <button id="copy-btn" style="display:none;">Copy</button>
-        <button id="summarize-btn" style="display:none;">Summarize</button>
-      </div>
-    </div>
-
-  <script src="{{ url_for('static', filename='chat.js') }}"></script>
-  <script>
-    // Theme Selection Functionality
-    document.addEventListener('DOMContentLoaded', function () {
-      const themeButton = document.querySelector('.theme-button');
-      const themeOptions = document.querySelector('.theme-options');
-      const themeOptionsItems = document.querySelectorAll('.theme-option');
-
-      // Toggle theme options dropdown
-      themeButton.addEventListener('click', function () {
-        themeOptions.classList.toggle('active');
-      });
-
-      // Close dropdown when clicking outside
-      document.addEventListener('click', function (event) {
-        if (!event.target.closest('.theme-selector')) {
-          themeOptions.classList.remove('active');
-        }
-      });
-
-      // Change theme when an option is selected
-      themeOptionsItems.forEach(option => {
-        option.addEventListener('click', function () {
-          const theme = this.getAttribute('data-theme');
-          document.body.setAttribute('data-theme', theme);
-          themeOptions.classList.remove('active');
-
-          // Save theme preference to localStorage
-          localStorage.setItem('selectedTheme', theme);
-        });
-      });
-
-      // Load saved theme from localStorage
-      const savedTheme = localStorage.getItem('selectedTheme');
-      if (savedTheme) {
-        document.body.setAttribute('data-theme', savedTheme);
-      }
-    });
-  </script>
-</body>
-
-</html>
-
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TechWiz TalkToText Pro</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body data-theme="dark">
-  <button id="left-toggle"><i class="fa-solid fa-bars"></i></button>
-  <div class="left-sidebar">
-    <div class="logo-wrapper">
-      <img src="{{ url_for('static', filename='logos.png') }}" alt="Logo" class="logo-img">
-      <span class="logo-text">TalkToText Pro</span>
-    </div>
-    <div class="search-wrapper">
-      <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-      <input id="search" placeholder="Search history..." />
-    </div>
-    <h3><i class="fa-solid fa-thumbtack"></i> Pinned</h3>
-    <div id="pinned-history" class="chat-history"></div>
-    <h3><i class="fa-solid fa-comments"></i> Chats</h3>
-    <div id="chat-history" class="chat-history"></div>
-    <button class="new-chat" id="new-chat">New Chat</button>
-    <button class="clear-history" id="clear-all">Clear All</button>
-  </div>
-
-  <div class="main">
-    <div class="header">
-      <h1><i class="fa-regular fa-comment-dots"></i> TechWiz TalkToText Pro</h1>
-      <button id="mode-toggle">☀️ Light</button>
-      <a href="/history"><i class="fa-solid fa-history"></i> History</a>
-      <a href="/logout"><i class="fa-solid fa-sign-out"></i> Logout</a>
     </div>
     <div class="chat-search-wrapper">
       <input id="chat-search" placeholder="Search in this chat..." />
     </div>
     <div class="chat-container" id="chat-container"></div>
-    <form id="chat-form" enctype="multipart/form-data">
+    <form id="chat-form" class="infom" enctype="multipart/form-data" style="display: flex;">
+
       <input type="text" id="query" placeholder="Type your message..." />
       <button type="button" id="mic-button"><i class="fa-solid fa-microphone"></i></button>
       <button type="submit">Send</button>
       <div class="image-preview" id="image-preview"></div>
     </form>
     <div class="upload-bar">
-      <input type="file" id="image" accept="image/*" style="display:none;" />
-      <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
-      <input type="file" id="file" accept="application/pdf" style="display:none;" />
-      <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
-      <form id="audio-form" enctype="multipart/form-data">
+      <div class="upload-barrrr">
+        <div>
+          <input type="file" id="image" accept="image/*" style="display:none;" />
+          <label for="image" class="upload-btn"><i class="fa-solid fa-image"></i> Image</label>
+        </div>
+
+        <div>
+          <input type="file" id="file" accept="application/pdf" style="display:none;" />
+          <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
+        </div>
+
+        <div>
+          <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
+        </div>
+      </div>
+
+      <form id="audio-form" enctype="multipart/form-data" style="border: 0px;">
         <input type="file" id="audio" accept="audio/*" style="display:none;" />
         <label for="audio" class="upload-btn"><i class="fa-solid fa-microphone"></i> Audio</label>
         <select id="lang">
@@ -289,10 +164,9 @@
           <option value="fr">French</option>
           <option value="de">German</option>
         </select>
-        <button type="submit">Upload & Process</button>
+        <button class="upload-btn" type="submit">Process</button>
       </form>
       <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
-      <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
     </div>
   </div>
 
@@ -308,7 +182,39 @@
     </div>
   </div>
 
-  <script src="{{ url_for('static', filename='theme-switcher.js') }}"></script>
   <script src="{{ url_for('static', filename='chat.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const themeButton = document.querySelector('.theme-button');
+      const themeOptions = document.querySelector('.theme-options');
+      const themeOptionsItems = document.querySelectorAll('.theme-option');
+
+      themeButton.addEventListener('click', function () {
+        themeOptions.classList.toggle('active');
+      });
+
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest('.theme-selector')) {
+          themeOptions.classList.remove('active');
+        }
+      });
+
+      themeOptionsItems.forEach(option => {
+        option.addEventListener('click', function () {
+          const theme = this.getAttribute('data-theme');
+          document.body.setAttribute('data-theme', theme);
+          themeOptions.classList.remove('active');
+
+          localStorage.setItem('selectedTheme', theme);
+        });
+      });
+
+      const savedTheme = localStorage.getItem('selectedTheme');
+      if (savedTheme) {
+        document.body.setAttribute('data-theme', savedTheme);
+      }
+    });
+  </script>
 </body>
-</html> -->
+
+</html>

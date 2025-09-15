@@ -11,7 +11,6 @@ def audio_file_to_text(file_storage, lang="en"):
     lang: language code used by Google recognizer (e.g., 'en', 'ur', 'fr')
     returns: transcript text
     """
-    # save to temp file (preserve original extension if available)
     suffix = ""
     if hasattr(file_storage, "filename") and "." in file_storage.filename:
         suffix = os.path.splitext(file_storage.filename)[1]
@@ -33,7 +32,6 @@ def audio_file_to_text(file_storage, lang="en"):
             audio = r.record(source)
             text = r.recognize_google(audio, language=lang)
     finally:
-        # cleanup temp files
         try:
             os.remove(tmp.name)
         except: pass

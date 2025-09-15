@@ -1,4 +1,4 @@
-/* History Page Specific Styles */
+
 .history-container {
   padding: 20px;
   max-width: 800px;
@@ -89,7 +89,6 @@
   opacity: 0.8;
 }
 
-/* Responsive adjustments for history page */
 @media (max-width: 768px) {
   .history-container {
     padding: 15px;

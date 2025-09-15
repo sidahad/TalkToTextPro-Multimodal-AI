@@ -15,7 +15,7 @@ const audioForm = document.getElementById("audio-form");
 const searchInput = document.getElementById("search");
 const chatSearch = document.getElementById("chat-search");
 
-let currentChat = "chat_" + Date.now();
+let currentChat; // Initialized later to prevent new chats on every page refresh
 let pinned = JSON.parse(localStorage.getItem("pinned") || "[]");
 
 const recognition = window.SpeechRecognition || window.webkitSpeechRecognition ?
@@ -38,7 +38,7 @@ function loadVoices() {
 
 let isRecording = false;
 
-function addMessage(text, sender, imageUrl = null, fileName = null) {
+function addMessage(text, sender, imageUrl = null, fileName = null, save = true) {
     const bubble = document.createElement("div");
     bubble.classList.add("bubble", sender);
     if (imageUrl && sender === "user") {
@@ -64,7 +64,7 @@ function addMessage(text, sender, imageUrl = null, fileName = null) {
 
         const copyButton = document.createElement("button");
         copyButton.innerHTML = '<i class="fa-regular fa-copy"></i>';
-        copyButton.classList.add("action-btn", "copy-btn"); // multiple classes
+        copyButton.classList.add("action-btn", "copy-btn");
 
         copyButton.onclick = () => {
             navigator.clipboard.writeText(text).then(() => alert("Copied!"));
@@ -80,12 +80,9 @@ function addMessage(text, sender, imageUrl = null, fileName = null) {
         };
         buttonContainer.appendChild(speakAgainButton);
 
-       const stopButton = document.createElement("button");
-
-// Font Awesome stop icon
-stopButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
-
-stopButton.classList.add("stop-btn");
+        const stopButton = document.createElement("button");
+        stopButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
+        stopButton.classList.add("stop-btn");
 
         stopButton.className = "stop-btn";
         stopButton.onclick = () => {
@@ -110,10 +107,12 @@ stopButton.classList.add("stop-btn");
         chatContainer.appendChild(bubble);
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
-    saveChatLocal(currentChat, sender, text, imageUrl, fileName);
+    if (save) {
+        saveChatLocal(currentChat, sender, text, imageUrl, fileName);
+    }
 }
 
-function typeMessage(text, sender) {
+function typeMessage(text, sender, save = true) {
     const bubble = document.createElement("div");
     bubble.classList.add("bubble", sender);
     if (chatContainer) {
@@ -134,28 +133,25 @@ function typeMessage(text, sender) {
                 const buttonContainer = document.createElement("div");
                 buttonContainer.classList.add("button-container");
 
-                    const copyButton = document.createElement("button");
-        copyButton.innerHTML = '<i class="fa-regular fa-copy"></i>';
-        copyButton.classList.add("action-btn", "copy-btn");
+                const copyButton = document.createElement("button");
+                copyButton.innerHTML = '<i class="fa-regular fa-copy"></i>';
+                copyButton.classList.add("action-btn", "copy-btn");
                 copyButton.onclick = () => {
                     navigator.clipboard.writeText(text).then(() => alert("Copied!"));
                 };
                 buttonContainer.appendChild(copyButton);
 
-               const speakAgainButton = document.createElement("button");
-        speakAgainButton.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
-        speakAgainButton.classList.add("speak-again-btn");
+                const speakAgainButton = document.createElement("button");
+                speakAgainButton.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+                speakAgainButton.classList.add("speak-again-btn");
                 speakAgainButton.onclick = () => {
                     if (synth) speakText(text);
                 };
                 buttonContainer.appendChild(speakAgainButton);
 
-               const stopButton = document.createElement("button");
-
-// Font Awesome stop icon
-stopButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
-
-stopButton.classList.add("stop-btn");
+                const stopButton = document.createElement("button");
+                stopButton.innerHTML = '<i class="fa-solid fa-stop"></i>';
+                stopButton.classList.add("stop-btn");
                 stopButton.onclick = () => {
                     if (synth && isSpeaking) {
                         synth.cancel();
@@ -174,7 +170,9 @@ stopButton.classList.add("stop-btn");
 
                 bubble.appendChild(buttonContainer);
             }
-            saveChatLocal(currentChat, sender, text);
+            if (save) {
+                saveChatLocal(currentChat, sender, text);
+            }
         }
     }, 12);
 }
@@ -412,6 +410,7 @@ function saveChatLocal(chatId, sender, text, image = null, fileName = null) {
     if (!chats[chatId]) chats[chatId] = [];
     chats[chatId].push({ sender, text, image, fileName });
     localStorage.setItem("chats", JSON.stringify(chats));
+    localStorage.setItem("lastActiveChat", chatId);
     renderChatHistory();
 }
 
@@ -421,7 +420,18 @@ function loadChat(chatId) {
     }
     currentChat = chatId;
     let chats = JSON.parse(localStorage.getItem("chats") || "{}");
-    (chats[chatId] || []).forEach(m => addMessage(m.text, m.sender, m.image, m.fileName));
+    (chats[chatId] || []).forEach(m => addMessage(m.text, m.sender, m.image, m.fileName, false));
+    localStorage.setItem("lastActiveChat", chatId);
+    renderChatHistory(); // Update history to highlight active chat
+}
+
+function newChat() {
+    currentChat = "chat_" + Date.now();
+    if (chatContainer) {
+        chatContainer.innerHTML = "";
+    }
+    saveChatLocal(currentChat, "system", "New chat started.");
+    renderChatHistory(); // Update history to show new chat
 }
 
 function deleteChat(chatId) {
@@ -433,11 +443,7 @@ function deleteChat(chatId) {
     localStorage.setItem("pinned", JSON.stringify(pinnedList));
     renderChatHistory();
     if (currentChat === chatId) {
-        currentChat = "chat_" + Date.now();
-        if (chatContainer) {
-            chatContainer.innerHTML = "";
-        }
-        saveChatLocal(currentChat, "system", "New chat started.");
+        newChat(); // Start a new chat if the current one is deleted
     }
 }
 
@@ -456,6 +462,9 @@ function renderChatHistory() {
         const btn = document.createElement("button");
         btn.textContent = id;
         btn.className = "load-btn";
+        if (id === currentChat) {
+            btn.classList.add("active"); // Highlight the active chat
+        }
         btn.onclick = () => loadChat(id);
         const pinBtn = document.createElement("button");
         pinBtn.innerHTML = pinned.includes(id)
@@ -467,7 +476,6 @@ function renderChatHistory() {
         pinBtn.onclick = (e) => { e.stopPropagation(); togglePin(id); };
         const deleteBtn = document.createElement("button");
         deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-
         deleteBtn.classList.add("delete-btn");
         deleteBtn.style.marginLeft = "5px";
         deleteBtn.style.padding = "8px";
@@ -490,32 +498,25 @@ function togglePin(id) {
 }
 
 document.getElementById("new-chat").addEventListener("click", () => {
-    currentChat = "chat_" + Date.now();
-    if (chatContainer) {
-        chatContainer.innerHTML = "";
-    }
-    saveChatLocal(currentChat, "system", "New chat started.");
+    newChat();
 });
 
 document.getElementById("clear-all").addEventListener("click", () => {
     if (confirm("Clear all chat history?")) {
         localStorage.removeItem("chats");
         localStorage.removeItem("pinned");
+        localStorage.removeItem("lastActiveChat");
         renderChatHistory();
-        currentChat = "chat_" + Date.now();
-        if (chatContainer) {
-            chatContainer.innerHTML = "";
-        }
-        saveChatLocal(currentChat, "system", "New chat started.");
+        newChat();
     }
 });
 
 function filterHistory() {
     const term = searchInput.value.toLowerCase();
-    const wrappers = document.querySelectorAll('.chat-history > div');
+    const wrappers = document.querySelectorAll('.chat-history > div, .pinned-history > div');
     wrappers.forEach(wrapper => {
         const btn = wrapper.querySelector('.load-btn');
-        if (btn.textContent.toLowerCase().includes(term)) {
+        if (btn && btn.textContent.toLowerCase().includes(term)) {
             wrapper.style.display = 'flex';
         } else {
             wrapper.style.display = 'none';
@@ -562,7 +563,16 @@ if (rightHamburger) {
     rightHamburger.onclick = () => rightSidebar.classList.toggle('active');
 }
 
-renderChatHistory();
+// Initial chat and history load
+function initializeChat() {
+    const lastChatId = localStorage.getItem("lastActiveChat");
+    if (lastChatId) {
+        loadChat(lastChatId);
+    } else {
+        newChat();
+    }
+}
+initializeChat();
 
 window.addEventListener('resize', () => {
     if (window.innerWidth < 768) {
@@ -577,35 +587,13 @@ if (window.innerWidth < 768) {
     rightSidebar.classList.remove('active');
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// Enhanced UI functionality for TechWiz Chatbot
-
-// Theme switching with persistence
 document.addEventListener('DOMContentLoaded', function () {
-    // Check for saved theme preference
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) {
         document.body.setAttribute('data-theme', savedTheme);
         updateThemeButton(savedTheme);
     }
 
-    // Enhanced theme toggle
     const themeToggle = document.getElementById('mode-toggle');
     if (themeToggle) {
         themeToggle.addEventListener('click', function () {
@@ -625,7 +613,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Enhanced file upload preview
     const fileInputs = document.querySelectorAll('input[type="file"]');
     fileInputs.forEach(input => {
         input.addEventListener('change', function (e) {
@@ -636,7 +623,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     const originalText = label.innerHTML;
                     label.innerHTML = `<i class="fa-solid fa-check"></i> ${fileName}`;
 
-                    // Reset after 3 seconds
                     setTimeout(() => {
                         label.innerHTML = originalText;
                     }, 3000);
@@ -645,12 +631,10 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Smooth scrolling for chat container
     const chatContainer = document.getElementById('chat-container');
     if (chatContainer) {
         chatContainer.scrollTop = chatContainer.scrollHeight;
 
-        // Auto-scroll to bottom when new messages are added
         const observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
                 if (mutation.addedNodes.length) {
@@ -665,7 +649,6 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(chatContainer, { childList: true });
     }
 
-    // Enhanced microphone button with visual feedback
     const micButton = document.getElementById('mic-button');
     if (micButton && recognition) {
         micButton.addEventListener('click', function () {
@@ -673,7 +656,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Tooltip functionality
     const buttons = document.querySelectorAll('button, .upload-btn');
     buttons.forEach(button => {
         const title = button.getAttribute('title');
@@ -702,10 +684,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// Enhanced message sending with animation
 const originalAddMessage = addMessage;
-window.addMessage = function (text, sender, imageUrl = null, fileName = null) {
-    const bubble = originalAddMessage(text, sender, imageUrl, fileName);
+window.addMessage = function (text, sender, imageUrl = null, fileName = null, save = true) {
+    const bubble = originalAddMessage(text, sender, imageUrl, fileName, save);
     if (bubble) {
         bubble.style.opacity = '0';
         bubble.style.transform = 'translateY(20px)';
@@ -718,11 +699,9 @@ window.addMessage = function (text, sender, imageUrl = null, fileName = null) {
     }
     return bubble;
 };
-
-// Enhanced typing animation
 const originalTypeMessage = typeMessage;
-window.typeMessage = function (text, sender) {
-    const bubble = originalTypeMessage(text, sender);
+window.typeMessage = function (text, sender, save = true) {
+    const bubble = originalTypeMessage(text, sender, save);
     if (bubble) {
         bubble.style.opacity = '0';
         bubble.style.transform = 'translateY(20px)';

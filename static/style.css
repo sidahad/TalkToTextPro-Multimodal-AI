@@ -1,6 +1,5 @@
-/* Enhanced TechWiz TalkToText Pro Styles - Modified */
+
 :root {
-  /* Dark Theme (Default) */
   --bg-color: #1a1a2e;
   --text-color: #e0e0ff;
   --primary-color: #6b48ff;
@@ -47,8 +46,6 @@
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
 }
-
-/* Global Styles */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -67,7 +64,6 @@ body {
   line-height: 1.6;
 }
 
-/* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -85,7 +81,6 @@ body {
   background: var(--button-hover-bg);
 }
 
-/* Sidebars */
 .left-sidebar, .right-sidebar {
   background: var(--sidebar-bg);
   padding: 20px;
@@ -137,7 +132,6 @@ body {
   transform: translateY(-2px);
 }
 
-/* Main Content Area */
 .main {
   flex: 1;
   display: flex;
@@ -149,7 +143,6 @@ body {
   transition: var(--transition);
 }
 
-/* Logo and Branding */
 .logo-wrapper {
   display: flex;
   align-items: center;
@@ -177,7 +170,6 @@ body {
   color: transparent;
 }
 
-/* Search and Input Fields */
 .search-wrapper {
   position: relative;
   margin-bottom: 20px;
@@ -220,7 +212,6 @@ textarea:focus {
   opacity: 0.7;
 }
 
-/* Chat History */
 .chat-history {
   flex: 1;
   overflow-y: auto;
@@ -260,7 +251,6 @@ textarea:focus {
   border-left: 4px solid var(--primary-color);
 }
 
-/* Buttons */
 button, .upload-btn, .new-chat, .clear-history {
   background: var(--button-bg);
   border: none;
@@ -287,7 +277,6 @@ button:active, .upload-btn:active {
   transform: translateY(0);
 }
 
-/* Header */
 .header {
   padding: 15px 20px;
   background: var(--bg-color);
@@ -330,7 +319,6 @@ button:active, .upload-btn:active {
   transform: translateY(-2px);
 }
 
-/* Chat Search */
 .chat-search-wrapper {
   padding: 15px 20px;
   background: var(--bg-color);
@@ -359,7 +347,6 @@ button:active, .upload-btn:active {
   outline: none;
 }
 
-/* Chat Container */
 .chat-container {
   flex: 1;
   padding: 20px;
@@ -372,7 +359,6 @@ button:active, .upload-btn:active {
   background: var(--bg-color);
 }
 
-/* Message Bubbles */
 .bubble {
   max-width: 75%;
   padding: 16px 20px;
@@ -423,7 +409,6 @@ button:active, .upload-btn:active {
   box-shadow: var(--shadow);
 }
 
-/* Button Container in Bubbles */
 .button-container {
   display: flex;
   gap: 8px;
@@ -447,7 +432,6 @@ button:active, .upload-btn:active {
   transform: translateY(-2px);
 }
 
-/* Loading Animation */
 .loading .spinner {
   border: 3px solid var(--bubble-bot-bg);
   border-top: 3px solid var(--primary-color);
@@ -461,8 +445,6 @@ button:active, .upload-btn:active {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-/* Forms */
 form {
   display: flex;
   padding: 15px 20px;
@@ -475,7 +457,6 @@ form {
   box-shadow: var(--shadow);
 }
 
-/* Upload Bar */
 .upload-bar {
   display: flex;
   flex-wrap: wrap;
@@ -506,7 +487,6 @@ form {
   transform: translateY(-2px);
 }
 
-/* Audio Form */
 #audio-form {
   display: flex;
   gap: 10px;
@@ -534,7 +514,6 @@ form {
   outline: none;
 }
 
-/* Processing Panel Sections */
 .pdf-section, .audio-section {
   margin-bottom: 20px;
   padding: 15px;
@@ -562,8 +541,6 @@ form {
   font-size: 14px;
   line-height: 1.5;
 }
-
-/* Suggestions */
 .suggestions {
   display: flex;
   flex-wrap: wrap;
@@ -586,7 +563,6 @@ form {
   transform: translateY(-2px);
 }
 
-/* Toggle Buttons */
 #left-toggle, #right-toggle {
   position: fixed;
   top: 15px;
@@ -613,8 +589,6 @@ form {
   background: var(--button-hover-bg);
   transform: scale(1.1);
 }
-
-/* Image Preview */
 .image-preview {
   margin-top: 10px;
 }
@@ -625,7 +599,6 @@ form {
   box-shadow: var(--shadow);
 }
 
-/* Cards for History Page */
 .card {
   background: var(--card-bg);
   border-radius: var(--radius-md);
@@ -655,8 +628,6 @@ form {
   line-height: 1.6;
   font-size: 14px;
 }
-
-/* Responsive Design */
 @media (max-width: 1200px) {
   .left-sidebar { width: 240px; }
   .right-sidebar { width: 280px; }
@@ -719,7 +690,6 @@ form {
   }
   
   form { 
-    /* flex-direction: column; */
     padding: 10px;
   }
   
@@ -734,7 +704,6 @@ form {
   #right-toggle { right: 10px; }
 }
 
-/* Utility Classes */
 .text-center {
   text-align: center;
 }
@@ -771,7 +740,6 @@ form {
   justify-content: center;
 }
 
-/* Animation for new messages */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -787,7 +755,6 @@ form {
   animation: slideIn 0.3s ease;
 }
 
-/* Pulse animation for recording state */
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
@@ -805,7 +772,6 @@ form {
   background: var(--error-color) !important;
 }
 
-/* Additional Theme Options */
 [data-theme="nature"] {
   --bg-color: #1e3f33;
   --text-color: #e8f5e9;
@@ -854,7 +820,6 @@ form {
   --card-bg: #00374d;
 }
 
-/* Theme Selector Styles */
 .theme-selector {
   position: relative;
   display: inline-block;
@@ -916,8 +881,6 @@ form {
   border-radius: 50%;
   display: inline-block;
 }
-
-/* Auth Specific Styles */
 .auth-container {
   display: flex;
   justify-content: center;
@@ -1004,7 +967,6 @@ form {
   text-decoration: underline;
 }
 
-/* NEW: Status Indicators */
 .status-indicator {
   display: inline-block;
   width: 8px;
@@ -1025,8 +987,6 @@ form {
   background-color: var(--warning-color);
   animation: pulse 1.5s infinite;
 }
-
-/* NEW: File Upload Zone */
 .file-upload-zone {
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-md);
@@ -1046,8 +1006,6 @@ form {
   border-color: var(--primary-color);
   background-color: rgba(107, 72, 255, 0.1);
 }
-
-/* NEW: Progress Bar */
 .progress-bar {
   height: 6px;
   background-color: var(--input-bg);
@@ -1063,7 +1021,6 @@ form {
   transition: width 0.3s ease;
 }
 
-/* NEW: Toast Notifications */
 .toast-container {
   position: fixed;
   top: 20px;
@@ -1103,7 +1060,6 @@ form {
   border-left: 4px solid var(--primary-color);
 }
 
-/* NEW: Keyboard Shortcuts Help */
 .shortcut-help {
   background: var(--card-bg);
   border-radius: var(--radius-md);
@@ -1135,7 +1091,6 @@ form {
   border: 1px solid var(--border-color);
 }
 
-/* NEW: Accessibility Improvements */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -1155,8 +1110,6 @@ form {
   white-space: nowrap;
   border: 0;
 }
-
-/* NEW: Focus styles for better accessibility */
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
@@ -1166,7 +1119,6 @@ a:focus-visible {
   outline-offset: 2px;
 }
 
-/* NEW: High contrast mode support */
 @media (prefers-contrast: high) {
   :root {
     --border-color: #000000;
@@ -1178,10 +1130,8 @@ a:focus-visible {
   }
 }
 
-/* NEW: Dark mode detection improvement */
 @media (prefers-color-scheme: dark) {
   body:not([data-theme]) {
-    /* Use dark theme if no theme is explicitly set and system prefers dark */
     --bg-color: #1a1a2e;
     --text-color: #e0e0ff;
     --primary-color: #6b48ff;

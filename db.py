@@ -10,7 +10,6 @@ client = MongoClient(MONGO_URI)
 db_mongo = client["talktotext"]
 notes_collection = db_mongo["meeting_notes"]
 
-# SQLite database setup
 SQLITE_DB = "users.db"
 
 def init_sqlite_db():
@@ -26,7 +25,6 @@ def init_sqlite_db():
     conn.commit()
     conn.close()
 
-# Initialize the database on import
 init_sqlite_db()
 
 def save_user(username, password):

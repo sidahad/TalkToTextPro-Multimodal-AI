@@ -59,14 +59,12 @@ $(document).ready(function () {
         onCompleteParams: [targetRect.top],
       });
     });
-    // counter animations
     aianaHero.from(
       progressCounter,
       {
         textContent: 0,
         duration: 4,
         snap: { textContent: 1 },
-        // stagger: 1,
       },
       0
     );
@@ -88,7 +86,6 @@ $(document).ready(function () {
   };
   var scrollbar = Scrollbar.init(ScrollArea, options);
 
-  // gsap register Scroll Trigger & Smooth-scroll
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
 
   scrollbar.addListener(ScrollTrigger.update);
@@ -218,37 +215,6 @@ $(document).ready(function () {
     },
   });
 
-  // // Animation for aiana-details
-  // let animation2 = gsap.timeline({
-  //   scrollTrigger: {
-  //     trigger: ".aiana-projects",
-  //     start: "center center",
-  //     end: "bottom top",
-  //     scrub: true,
-  //   },
-  // });
-  // animation2.to(".circleImg", {
-  //   xPercent: 130,
-  //   scale: 1.25,
-  // });
-  // circleImg.add(animation2);
-
-  // // Animation for section 3
-  // let animation3 = gsap.timeline({
-  //   scrollTrigger: {
-  //     trigger: ".aiana-details",
-  //     start: "70% center",
-  //     end: "bottom top",
-  //     scrub: true,
-  //   },
-  // });
-  // animation3.to(".circleImg", {
-  //   xPercent: 0,
-  //   scale: 1,
-  // });
-  // circleImg.add(animation3);
-
-  // Fade out when reaching the target section
   let fadeOutAnimation = gsap.timeline({
     scrollTrigger: {
       trigger: ".aiana-details-2",
@@ -276,7 +242,6 @@ $(document).ready(function () {
     pauseOnHover: false,
   });
 
-  // pinning projects button
   let projectTab = gsap.timeline({
     scrollTrigger: {
       trigger: "#projects-tab",
@@ -290,7 +255,6 @@ $(document).ready(function () {
     scrollTrigger: {
       trigger: ".aiana-details",
       start: "top center",
-      // markers: true,
     },
   });
 
@@ -320,7 +284,6 @@ $(document).ready(function () {
       scrub: true,
       start: "top center",
       end: "bottom 10%",
-      // markers: true,
     },
   });
 
@@ -341,10 +304,8 @@ $(document).ready(function () {
   let aianaVideo = gsap.timeline({
     scrollTrigger: {
       trigger: ".aiana-video",
-      // scrub: true,
       start: "center center",
       end: "bottom 10%",
-      // markers: true,
     },
   });
   let aianaServices = gsap.timeline({
@@ -366,7 +327,6 @@ $(document).ready(function () {
     getParent.find(".close").css("display", "block");
     var symbol = getVideo[0].src.indexOf("?") > -1 ? "&" : "?";
 
-    // Check if autoplay parameter already exists
     if (getVideo[0].src.indexOf("autoplay") === -1) {
       getVideo[0].src += symbol + "autoplay=1";
     } else {
@@ -381,7 +341,6 @@ $(document).ready(function () {
 
     var symbol = getVideo[0].src.indexOf("?") > -1 ? "&" : "?";
 
-    // Check if autoplay parameter already exists
     if (getVideo[0].src.indexOf("autoplay") === -1) {
       getVideo[0].src += symbol + "autoplay=0";
     } else {
@@ -398,12 +357,10 @@ $(document).ready(function () {
     });
   });
 
-  // filling gap
   var topPosition = $(".aiana-details").css("top");
   console.log(topPosition);
   $(".aiana-details").css("padding-top", topPosition.replace("-", ""));
 
-  // aiana-details-2 slider
   var shaderSlide;
 
   function initSwiper() {
@@ -442,7 +399,6 @@ $(document).ready(function () {
   var breakpoint = window.matchMedia("(max-width: 767px)");
   breakpoint.addEventListener("change", handleBreakpointChange);
 
-  // Initial check
   handleBreakpointChange(breakpoint);
 
   const circleText = new CircleType(
@@ -461,7 +417,6 @@ $(document).ready(function () {
     }
   });
 
-  // aiana testimonials
 
   var swiperTestimonials = new Swiper(".swiperTestimonials", {
     grabCursor: false,
@@ -476,7 +431,6 @@ $(document).ready(function () {
     },
   });
 
-  // TEstimonials SLider
   var Thumbnails = new Swiper(".testimonialThumb", {
     direction: "vertical",
 
@@ -520,7 +474,6 @@ function scrambleText(text, revealPercentage) {
 
   animateToOriginal(scrambleElement, originalText, totalDuration);
 
-  // scroll to
   $(".navMenu li a").each(function (e) {
     const target = $(this).attr("href");
     const targetEl = $(target);
