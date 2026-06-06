@@ -1,37 +1,51 @@
-# ai_engine_gemini.py
-import os, base64
+# ai_engine_gemini.py - FIXED FOR IMAGE UPLOADS!
+import os
+import base64
+import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# create model
-model = genai.GenerativeModel("models/gemini-1.5-flash")
-
-# start a chat session (keeps history inside Gemini session)
+model = genai.GenerativeModel("gemini-2.0-flash-exp")
 chat_session = model.start_chat(history=[])
 
 def get_answer(query: str) -> str:
+    time.sleep(4)
     try:
         response = chat_session.send_message(query)
         return response.text
     except Exception as e:
-        return f"Error generating answer: {str(e)}"
+        return f"Error: {str(e)}"
 
-def get_answer_with_image(query: str, image_file):
+def get_answer_with_image(query: str, image_bytes=None):  # 🔥 FIXED: BYTES not FILE!
+    time.sleep(4)
     try:
-        if not image_file:
+        if not image_bytes:
             return get_answer(query), None
-        # read bytes
-        img_bytes = image_file.read()
-        # send image + text to model
-        # note: mime_type may be auto-detected; using image/png as generic
+        
+        # 🔥 FIXED: Use passed BYTES (not file.read()!)
+        encoded_image = base64.b64encode(image_bytes).decode("utf-8")
+        
+        # Auto-detect MIME type
+        mime_type = "image/jpeg"
+        if image_bytes.startswith(b'\xff\xd8\xff'):
+            mime_type = "image/jpeg"
+        elif image_bytes.startswith(b'\x89PNG'):
+            mime_type = "image/png"
+        elif image_bytes.startswith(b'RIFF') and b'WEBP' in image_bytes[:12]:
+            mime_type = "image/webp"
+        
         response = model.generate_content([
-            {"mime_type": "image/png", "data": img_bytes},
+            {
+                "inline_data": {
+                    "mime_type": mime_type,
+                    "data": encoded_image
+                }
+            },
             query
         ])
-        encoded_image = base64.b64encode(img_bytes).decode("utf-8")
         return response.text, encoded_image
     except Exception as e:
         return f"Error: {str(e)}", None

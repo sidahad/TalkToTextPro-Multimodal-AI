@@ -33,6 +33,30 @@
       height: 40px;
     }
 
+    #speak-btn {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+      color: white !important;
+      border: none !important;
+      padding: 12px !important;
+      margin: 10px 0 !important;
+      border-radius: 8px !important;
+      width: 100% !important;
+      font-size: 16px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      display: none !important;
+    }
+
+    #speak-btn:hover {
+      background: linear-gradient(135deg, #ee5a52, #ff6b6b) !important;
+      transform: scale(1.02) !important;
+    }
+
+    #speak-btn:disabled {
+      opacity: 0.7 !important;
+      cursor: not-allowed !important;
+    }
+
     @media (min-width: 768px) {
       .upload-barrrr {
         flex-wrap: nowrap;
@@ -50,28 +74,164 @@
     }
 
     @media (max-width: 768px) {
-
       .infom {
         display: flex;
+      }
+      
+      .left-sidebar {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 80%;
+        height: 100%;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        background: var(--sidebar-bg);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        overflow-y: auto;
+      }
+      
+      .left-sidebar.active {
+        left: 0;
+      }
+      
+      .sidebar-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: none;
+      }
+      
+      .sidebar-overlay.active {
+        display: block;
+      }
+      
+      .sidebar-close {
+        display: block !important;
+        position: absolute;
+        top: 5px;
+        right: 6px;
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        padding: 0px;
+      }
+      
+      .sidebar-toggle {
+        display: block !important;
+        position: fixed;
+        top: 5px;
+        left: 15px;
+        background: var(--button-bg);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 998;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      }
+      
+      .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 10px 0;
+        gap: 0px;
+      }
+      
+      .header h1 {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+      }
+      
+      .header .upload-barrrr {
+        justify-content: center;
+        margin-top: 10px;
+        width: 100%;
       }
     }
 
     @media (min-width: 768px) {
-
       .infom {
         flex-direction: row;
         padding: 10px;
       }
+      
+      .sidebar-close, .sidebar-toggle {
+        display: none !important;
+      }
+      
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+      }
+      
+      .header h1 {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+    }
+    
+    #extracted-box, #transcript-box, #summary-box {
+      background: var(--input-bg);
+      padding: 15px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      max-height: 315px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+   .logo-wrapper {
+      position: relative;
     }
   </style>
 </head>
 
 <body data-theme="dark">
-  <div class="left-sidebar">
+  <button class="sidebar-toggle" style="padding: 0px;" id="sidebar-toggle">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+  
+  <div class="left-sidebar" id="left-sidebar">
+    <button class="sidebar-close" id="sidebar-close">
+      <i class="fa-solid fa-times"></i>
+    </button>
+    
     <div class="logo-wrapper">
       <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}" alt="Logo"
         class="logo-img">
-      <span class="logo-text">TalkToText Pro</span>
+      <span class="logo-text" style="color: #007bff;">TalkToText Pro</span>
     </div>
     <div class="search-wrapper">
       <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
@@ -87,8 +247,11 @@
 
   <div class="main">
     <div class="header">
-      <h1> <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}"
-          style="height: 30px; width: 30px;" alt="Logo"> TechWiz TalkToText Pro</h1>
+      <h1> 
+        <img src="{{ url_for('static', filename='landing_assets/images/talktotextlogo.png') }}"
+          style="height: 30px; width: 30px;" alt="Logo"> 
+        TechWiz TalkToText Pro
+      </h1>
       <div class="upload-barrrr" style="flex-wrap: nowrap;">
         <div>
           <button class="new-chat" id="new-chat" style="height: 40px;">New Chat</button>
@@ -131,10 +294,19 @@
       <input id="chat-search" placeholder="Search in this chat..." />
     </div>
     <div class="chat-container" id="chat-container"></div>
+    <button id="speak-btn">
+      <i class="fa-solid fa-volume-high"></i> اردو میں بولو!
+    </button>
+    <audio id="urdu-audio" preload="none" style="display:none;"></audio>
     <form id="chat-form" class="infom" enctype="multipart/form-data" style="display: flex;">
 
       <input type="text" id="query" placeholder="Type your message..." />
       <button type="button" id="mic-button"><i class="fa-solid fa-microphone"></i></button>
+<select id="model-select" style="margin-left: 10px; padding: 5px; border-radius: 4px;">
+  <option value="gemini">Gemini</option>
+  <option value="groq">Groq (Super Fast)</option>
+  <option value="cloudflare">Cloudflare (Free Images)</option>
+</select>
       <button type="submit">Send</button>
       <div class="image-preview" id="image-preview"></div>
     </form>
@@ -148,10 +320,6 @@
         <div>
           <input type="file" id="file" accept="application/pdf" style="display:none;" />
           <label for="file" class="upload-btn"><i class="fa-solid fa-file-pdf"></i> PDF</label>
-        </div>
-
-        <div>
-          <button class="upload-btn"><i class="fa-solid fa-video"></i> Video</button>
         </div>
       </div>
 
@@ -169,6 +337,7 @@
       <button class="upload-btn"><i class="fa-solid fa-file-lines"></i> Notes</button>
     </div>
   </div>
+  
 
   <button id="right-toggle" style="display: none;"><i class="fa-solid fa-bars"></i></button>
   <div class="right-sidebar">
@@ -176,7 +345,7 @@
     <h3><i class="fa-solid fa-cog"></i> Processing Panel</h3>
     <div class="pdf-section">
       <h4><i class="fa-solid fa-file-pdf"></i> Extracted PDF Text</h4>
-      <div id="extracted-box"></div>
+      <div id="extracted-box" style="margin-bottom: 5px;"></div>
       <button id="copy-btn" style="display:none;">Copy</button>
       <button id="summarize-btn" style="display:none;">Summarize</button>
     </div>
@@ -213,8 +382,36 @@
       if (savedTheme) {
         document.body.setAttribute('data-theme', savedTheme);
       }
+      
+      // Mobile sidebar functionality
+      const sidebarToggle = document.getElementById('sidebar-toggle');
+      const sidebarClose = document.getElementById('sidebar-close');
+      const sidebarOverlay = document.getElementById('sidebar-overlay');
+      const leftSidebar = document.getElementById('left-sidebar');
+      
+      function openSidebar() {
+        leftSidebar.classList.add('active');
+        sidebarOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+      
+      function closeSidebar() {
+        leftSidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+      
+      sidebarToggle.addEventListener('click', openSidebar);
+      sidebarClose.addEventListener('click', closeSidebar);
+      sidebarOverlay.addEventListener('click', closeSidebar);
+      
+      // Close sidebar when a link is clicked (for navigation)
+      const sidebarLinks = leftSidebar.querySelectorAll('a, button');
+      sidebarLinks.forEach(link => {
+        link.addEventListener('click', closeSidebar);
+      });
     });
   </script>
-</body>
 
+</body>
 </html>

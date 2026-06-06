@@ -1141,3 +1141,16 @@ a:focus-visible {
     --input-bg: #2b2b4b;
   }
 }
+.download-btn {
+  display: inline-block;
+  padding: 5px 10px;
+  background-color: var(--button-bg);
+  color: var(--text-color);
+  text-decoration: none;
+  border-radius: 4px;
+  margin-top: 5px;
+  font-size: 14px;
+}
+.download-btn:hover {
+  background-color: var(--button-hover-bg);
+}

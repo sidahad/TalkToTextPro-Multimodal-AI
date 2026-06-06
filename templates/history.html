@@ -283,6 +283,13 @@
       URL.revokeObjectURL(url);
     }
   </script>
+  <script src="{{ url_for('static', filename='chat.js') }}"></script>
+  <script>
+      // Auto-load chat history on history page
+      document.addEventListener('DOMContentLoaded', async () => {
+          await renderChatHistory(); // This will now work from chat.js
+      });
+  </script>
 </body>
 
 </html>

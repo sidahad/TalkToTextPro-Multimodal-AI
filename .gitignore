@@ -1,0 +1,32 @@
+# 1. Environment Variables & API Keys
+.env
+*.env
+ahad.txt
+
+# 2. Local Databases & Secrets
+*.db
+users.db
+*.bacpac
+
+# 3. Heavy Binaries & Executables (FFmpeg)
+*.exe
+ffmpeg.exe
+ffmpeg-8.0-essentials_build/
+
+# 4. Heavy Media Files (Audio/Video Tests)
+*.mp3
+*.wav
+*.mp4
+*.ogg
+*.flac
+uploads/
+
+# 5. Python Virtual Environment & Cache
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# 6. Documentation Drafts
+notes.docx
+notes.pdf
