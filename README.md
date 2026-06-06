@@ -1,35 +1,38 @@
-# Talktotext
-Theme: AI-Powered Meeting Notes Rewriter Project Name: TalkToText Pro Category: Generative AI Odyssey
-# TalkToTextPro - Multimodal AI Assistant
+# TalkToTextPro - Enterprise Multi-LLM Multimodal AI Assistant
 
-TalkToTextPro is an advanced, production-grade multimodal AI assistant built with Python. It integrates text, vision, speech processing, and document intelligence to provide an all-in-one productivity solution. Driven by generative AI, it features robust audio translation pipelines, intelligent document handling, and a persistent history management panel powered by MongoDB.
+TalkToTextPro is a feature-rich, production-grade AI platform built with Python that unifies text, vision, speech processing, and document intelligence into a single ecosystem. Powered by a flexible multi-LLM architecture, users can switch between world-class models seamlessly in real-time. It features a high-performance MongoDB data persistence layer supporting advanced session control, content indexing, and text-to-speech feedback mechanisms.
 
 ---
 
-## Features
+## Core Features
+
+### Multi-LLM Routing & Hot Swapping
+* **Model Orchestration:** Dynamic runtime switching between Google Gemini, Groq, Cloudflare Workers AI, and other custom LLM endpoints.
+* **Optimized Inference:** Configured to handle specialized models for latency-critical text generation, deep reasoning, and high-fidelity vision tasks.
 
 ### Multimodal Core Interactions
-* **Text & Vision Prompts:** Processes standard text queries and analyzes complex image inputs alongside text prompts.
-* **Dual Output Experience:** Delivers responses in clear text and generates dynamic voice playback (Text-to-Speech).
-* **AI Image Generation:** Generates high-quality visual art and concepts directly from textual descriptions.
+* **Text & Vision Prompts:** Input descriptive text alongside complex imagery for real-time contextual analysis and data extraction.
+* **Dual Output Engine:** Automatically streams back rich markdown text responses while simultaneously preparing audio streams for speech output.
+* **AI Image Generation:** Embedded text-to-image capabilities to generate digital assets from structural text descriptions.
 
-### Advanced Document & Audio Intelligence
-* **PDF Extraction & Summarization:** Parses dense PDF documents, extracts text structural layouts, and delivers concise summaries.
-* **Long-Form Audio Translation:** Processes meeting recordings up to 30 minutes long, translating the audio into any targeted language.
-* **Meeting Insights:** Automatically extracts action items, key discussion points, and executive summaries from uploaded audio files.
+### Document & Audio Intelligence
+* **PDF Core Insights:** Processes dense PDF documents to extract structural layouts, tables, and raw text for targeted semantic summaries.
+* **Long-Form Audio Translation:** Industrial pipeline built using Pydub and FFmpeg capable of processing up to 30 minutes of continuous audio.
+* **Meeting Intelligence Extraction:** Automatically translates foreign language meeting logs and separates executive action items, timelines, and key points.
 
-### Session Management
-* **MongoDB Integration:** Automatically saves and stores user prompts, AI responses, and conversational states.
-* **History Panel UI:** Provides users with an intuitive sidebar panel to navigate, review, and resume past interactions.
+### Advanced History & Chat Management Panel
+* **Smart Session Controls:** Full-featured workspace sidebar allowing users to pin critical chats for quick access, unpin when completed, or delete records entirely.
+* **Global & Local Search:** Built-in semantic indices allowing users to filter past chat titles or search specific keywords inside a live active conversation.
+* **Utterance Controls:** Includes localized utilities inside the interface to instant-copy markdown text blocks or trigger the "Speak Again" playback routine for specific chatbot messages.
 
 ---
 
 ## Tech Stack & Core Libraries
 
-* **Language & Framework:** Python 3.10+
-* **Audio & Speech Processing:** Pydub, FFmpeg, gTTS, Playsound
-* **Database:** MongoDB (Motor / PyMongo)
-* **AI Integration:** OpenAI API / Gemini API (depending on implementation)
+* **Language & Runtime:** Python 3.10+
+* **Models Supported:** Google Gemini API, Groq Cloud API, Cloudflare Workers AI
+* **Audio & Speech Engine:** Pydub, FFmpeg, gTTS, Playsound
+* **Database & Persistence:** MongoDB (PyMongo / Motor Ecosystem)
 * **Document Parsing:** PyPDF2 / PDFPlumber
 
 ---
@@ -37,7 +40,7 @@ TalkToTextPro is an advanced, production-grade multimodal AI assistant built wit
 ## Installation and Setup
 
 ### 1. Prerequisites
-Ensure you have **FFmpeg** installed on your system path.
+Ensure you have **FFmpeg** installed and configured correctly on your environment system variables path.
 
 ### 2. Clone the Repository
 ```bash
