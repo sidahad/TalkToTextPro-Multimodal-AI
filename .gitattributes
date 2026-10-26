@@ -1,13 +1,13 @@
-# Put this file in the ROOT of repos where HTML/CSS/vendor files hide the real language
-# (e.g. TalkToTextPro-Multimodal-AI, Gamaxy-Gaming-Platform).
-# Adjust the folder names to match what actually exists in each repo.
+# PUT THIS FILE IN THE REPO ROOT (next to README.md), not inside any folder.
+# GitHub only reads the root .gitattributes when it counts languages.
 
-# Ignore third-party and generated code in language stats
-wwwroot/lib/** linguist-vendored
-**/node_modules/** linguist-vendored
-**/vendor/** linguist-vendored
+# Hide HTML pages from the language stats (works in any folder, no path needed)
+*.html linguist-vendored
+
+# Minified files are generated, not hand-written
 *.min.js linguist-generated
 *.min.css linguist-generated
 
-# Count templates/markup as documentation instead of code (optional)
-*.html linguist-documentation
+# OPTIONAL, Gamaxy only: also hide static assets such as games and libraries.
+# Remove the leading # to turn it on. The path starts from the repo root.
+# GamaxyWebApplication/wwwroot/** linguist-vendored
