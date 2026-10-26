@@ -1,0 +1,13 @@
+# Put this file in the ROOT of repos where HTML/CSS/vendor files hide the real language
+# (e.g. TalkToTextPro-Multimodal-AI, Gamaxy-Gaming-Platform).
+# Adjust the folder names to match what actually exists in each repo.
+
+# Ignore third-party and generated code in language stats
+wwwroot/lib/** linguist-vendored
+**/node_modules/** linguist-vendored
+**/vendor/** linguist-vendored
+*.min.js linguist-generated
+*.min.css linguist-generated
+
+# Count templates/markup as documentation instead of code (optional)
+*.html linguist-documentation
